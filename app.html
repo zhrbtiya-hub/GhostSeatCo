@@ -25,79 +25,43 @@
             display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
-        .notch { width: 150px; height: 25px; background: #333; margin: 0 auto; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; cursor: pointer; }
-        
+        .notch { 
+            width: 150px; height: 25px; background: #333; margin: 0 auto; 
+            border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; 
+            cursor: pointer; z-index: 9999;
+        }
 
         .screen { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; text-align: center; width: 100%; }
         .active { display: flex !important; }
 
         .radar {
-            width: 120px; height: 120px; border: 4px solid var(--ghost-blue);
+            width: 100px; height: 100px; border: 4px solid var(--ghost-blue);
             border-radius: 50%; margin: 40px auto; position: relative;
-            animation: pulse 0.5s infinite; 
+            animation: pulse 0.6s infinite; 
         }
         @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.1); opacity: 0; } }
 
         .screen-header { padding: 15px 0; font-weight: 600; font-size: 16px; color: #000; text-transform: uppercase; }
         h2 { font-weight: 800; font-size: 24px; margin: 20px 0; }
-
-        .time-display-box { background: #f8f9fa; width: 100%; padding: 20px; border-radius: 15px; border: 2px dashed var(--figma-blue); margin-bottom: 15px; }
-        #durationDisplay { font-size: 22px; font-weight: 900; color: var(--figma-blue); }
-        
-        .chip-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px; }
-        .chip { padding: 10px 15px; background: #eee; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; }
-        .chip.active-chip { background: var(--figma-blue); color: white; }
-        
-        .btn-add { width: 100%; padding: 12px; background: white; border: 2px solid var(--figma-blue); color: var(--figma-blue); border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
-
         .btn-group { display: flex; gap: 15px; width: 100%; margin-top: auto; padding-bottom: 30px; }
-        .btn-sq { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 16px; }
-        .btn-long { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--figma-blue); color: white; font-weight: bold; font-size: 16px; margin-top: auto; margin-bottom: 30px; cursor: pointer; }
+        .btn-sq { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; color: white; }
+        .btn-long { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--figma-blue); color: white; font-weight: bold; cursor: pointer; margin-top: auto; margin-bottom: 30px; }
         input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ccc; margin: 10px 0; font-size: 16px; }
         .timer-box { margin: 20px 0; background: #f8f9fa; padding: 25px; border-radius: 20px; width: 100%; border: 2px solid var(--figma-green); }
-    
-        /* DASHBOARD UI STYLES */
-.dash-card {
-    background: #fff;
-    padding: 15px;
-    border-radius: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-}
 
-.user-list-container {
-    background: #fff;
-    border-radius: 15px;
-    padding: 5px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    max-height: 250px;
-    overflow-y: auto;
-}
-
-.user-row {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.user-icon {
-    width: 35px; height: 35px;
-    background: #eee;
-    border-radius: 50%;
-    margin-right: 12px;
-    display: flex; align-items: center; justify-content: center;
-}
+        /* DASHBOARD UI */
+        .dash-card { background: #fff; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); width: 100%; margin-bottom: 10px; }
+        .user-list-container { background: #f8f9fa; border-radius: 15px; padding: 5px; width: 100%; max-height: 250px; overflow-y: auto; }
+        .user-row { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
+        .user-icon { width: 35px; height: 35px; background: #ddd; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
 <div class="phone-container">
-    <div class="notch" onclick="nextScreen('screen5')"></div>
+    <div class="notch" id="adminNotch"></div>
 
-    <!-- SENSING -->
+    <!-- SCREEN 0: SENSING -->
     <div id="screen0" class="screen active">
         <div class="screen-header">SENSING...</div>
         <div class="radar"></div>
@@ -105,103 +69,68 @@
         <p>Analyzing Seat <span id="currentSeatID" style="font-weight:bold;">...</span></p>
     </div>
 
-    <!-- STATUS -->
+    <!-- SCREEN 1: STATUS -->
     <div id="screen1" class="screen">
         <div class="screen-header">STATUS SCREEN</div>
         <h2 id="statusTitle">...</h2>
-        <div id="statusIcon" style="font-size: 100px; margin: 30px 0;">💺</div>
-        <p id="statusMsg" style="font-weight: 500; font-size: 18px; color: #444; padding: 0 10px;"></p>
+        <div id="statusIcon" style="font-size: 80px; margin: 20px 0;">💺</div>
+        <p id="statusMsg" style="font-weight: 500; font-size: 16px; padding: 0 10px; margin-bottom: 20px;"></p>
         <div id="actionButtons" style="display:flex; gap:15px; width:100%;"></div>
     </div>
 
-    <!-- BOOKING -->
+    <!-- SCREEN 2: BOOKING -->
     <div id="screen2" class="screen">
-        <div class="screen-header">BOOKING FORM</div>
-        <h2>Reserve Seat</h2>
+        <div class="screen-header">RESERVE</div>
+        <h2>Booking Form</h2>
         <div style="text-align: left; width: 100%;">
             <label><b>Name</b></label>
-            <input type="text" id="nameInput" placeholder="Enter your name">
-            <label><b>Select Duration</b></label>
-            <div class="time-display-box" style="text-align:center;"><span id="durationDisplay">15 minutes</span></div>
-            <div class="chip-group">
-                <div class="chip" onclick="setDuration(15)">15m</div>
-                <div class="chip" onclick="setDuration(30)">30m</div>
-                <div class="chip" onclick="setDuration(45)">45m</div>
-                <div class="chip" onclick="setDuration(60)">1h</div>
-            </div>
-            <button class="btn-add" onclick="addMinutes(15)">+ Add 15 Minutes</button>
+            <input type="text" id="nameInput" placeholder="Enter name">
+            <p style="margin-top: 15px;"><b>Duration: 15 Minutes</b></p>
         </div>
-        <button class="btn-long" onclick="confirmBooking()">Confirm Reservation</button>
+        <button class="btn-long" onclick="confirmBooking()">Confirm</button>
     </div>
 
-    <!-- SUCCESS (TIMER) -->
+    <!-- SCREEN 3: SUCCESS -->
     <div id="screen3" class="screen">
         <div class="screen-header">SUCCESS</div>
         <div style="font-size: 60px; color: var(--figma-green);">✔️</div>
         <h2>Seat <span id="successSeatID"></span> Reserved!</h2>
         <div class="timer-box">
-            <p>🕒 TIME REMAINING</p>
-            <h1 id="timerClock" style="font-size: 42px;">00:15:00</h1>
+            <p>🕒 TIME LEFT</p>
+            <h1 id="timerClock" style="font-size: 40px;">00:15:00</h1>
         </div>
-        <button class="btn-long" onclick="goHome()">Finish Session</button>
+        <button class="btn-long" onclick="goHome()">Finish</button>
     </div>
 
-    <!-- TIME'S UP SCREEN (NEW) -->
-    <div id="screen-timeout" class="screen">
-        <div class="screen-header">NOTIFICATION</div>
-        <div style="font-size: 80px; margin: 40px;">⏰</div>
-        <h2 style="color: var(--figma-red);">TIME'S UP!</h2>
-        <p>Your session for Seat <span id="timeoutSeatID"></span> has ended.</p>
-        <p style="margin-top: 10px; color: #666;">Please clear the seat for the next student.</p>
-        <button class="btn-long" onclick="goHome()">Done</button>
-    </div>
-
-    <!-- REPORT -->
+    <!-- SCREEN 4: REPORT -->
     <div id="screen4" class="screen">
         <div class="screen-header">REPORT</div>
         <div style="font-size: 80px; margin: 40px;">😊</div>
-        <h2>Thanks for letting us know!</h2>
-        <button class="btn-long" onclick="goHome()">Done</button>
+        <h2>Thanks for the report!</h2>
+        <button class="btn-long" onclick="goHome()">Back to Home</button>
     </div>
 
-    <!-- ADMIN -->
-    <!-- SCREEN 5: ADMIN DASHBOARD (Pasted exactly here) -->
+    <!-- SCREEN 5: ADMIN DASHBOARD -->
     <div id="screen5" class="screen">
-        <div class="screen-header" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding: 0 10px;">
-            <span style="font-size:24px;">☰</span>
-            <span style="font-weight:700;">ADMIN DASHBOARD</span>
-            <span style="font-size:20px;">🔔</span>
-        </div>
-
-        <div style="width:100%; padding:15px; text-align:left;">
-            <p style="font-weight:bold; color:#444; margin-bottom:15px;">Dashboard Overview</p>
-            
-            <div class="dash-card" style="border-left: 5px solid #ff4757; margin-bottom:15px;">
-                <div>
-                    <p style="font-size:12px; color:#666;">Occupied Seats</p>
-                    <h2 id="dashOccupied" style="font-size:28px;">0</h2>
-                </div>
-                <div style="background:#FFE4E6; padding:10px; border-radius:12px;">👥</div>
+        <div class="screen-header" style="font-weight:bold;">ADMIN DASHBOARD</div>
+        <div style="width:100%; padding:10px; text-align:left;">
+            <div class="dash-card" style="border-left: 5px solid var(--figma-red);">
+                <div><p style="font-size:12px;">Occupied</p><h2 id="dashOccupied">0</h2></div>
+                <div>👥</div>
             </div>
-
-            <div class="dash-card" style="border-left: 5px solid #2ecc71; margin-bottom:20px;">
-                <div>
-                    <p style="font-size:12px; color:#666;">Free Seats</p>
-                    <h2 id="dashFree" style="font-size:28px;">30</h2>
-                </div>
-                <div style="background:#D1FAE5; padding:10px; border-radius:12px;">🪑</div>
+            <div class="dash-card" style="border-left: 5px solid var(--figma-green);">
+                <div><p style="font-size:12px;">Free</p><h2 id="dashFree">30</h2></div>
+                <div>🪑</div>
             </div>
-
-            <p style="font-weight:bold; color:#444; margin-bottom:10px;">Current Users</p>
-            <div id="adminUserList" class="user-list-container">
-                <!-- User list will appear here automatically -->
-            </div>
-
-            <button class="btn-long" style="background:#555; margin-top:20px;" onclick="nextScreen('screen0')">Exit Admin Mode</button>
+            <p style="font-weight:bold; margin: 15px 0 10px 0;">Current Users</p>
+            <div id="adminUserList" class="user-list-container"></div>
+            <button class="btn-long" style="background:#555; margin-top:20px;" onclick="nextScreen('screen0')">Exit Admin</button>
         </div>
     </div>
+</div>
 
 <script>
+// 1. FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyBo-83st_6iUSVt72cPyrG29ChnfNZr53k",
   authDomain: "ghostseat.firebaseapp.com",
@@ -216,41 +145,36 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
+// 2. GLOBALS
 const urlParams = new URLSearchParams(window.location.search);
 const seatNumber = urlParams.get('seat') || "01"; 
-
-let selectedMinutes = 15;
-let countdownInterval;
+let totalSeconds = 900; 
 
 window.onload = function() {
     document.getElementById('currentSeatID').innerText = "#" + seatNumber;
     document.getElementById('successSeatID').innerText = "#" + seatNumber;
-    document.getElementById('timeoutSeatID').innerText = "#" + seatNumber;
     
-    // Request notification permission immediately
-    if ("Notification" in window) {
-        Notification.requestPermission();
-    }
+    // Secret Notch Click Logic (Click 3 times)
+    let clicks = 0;
+    document.getElementById('adminNotch').onclick = function() {
+        clicks++;
+        if (clicks === 3) { nextScreen('screen5'); clicks = 0; }
+        setTimeout(() => { clicks = 0; }, 2000);
+    };
 
     setTimeout(checkSeat, 800); 
 };
-
-function setDuration(mins) { selectedMinutes = mins; updateDurationText(); }
-function addMinutes(mins) { selectedMinutes += mins; updateDurationText(); }
-function updateDurationText() {
-    let display = document.getElementById('durationDisplay');
-    display.innerText = selectedMinutes >= 60 ? Math.floor(selectedMinutes/60) + "h " + (selectedMinutes%60) + "m" : selectedMinutes + " minutes";
-}
 
 function checkSeat() {
     database.ref('seats/' + seatNumber).once('value').then((snapshot) => {
         const data = snapshot.val();
         const now = Date.now();
         const btnGroup = document.getElementById('actionButtons');
+
         if (data && data.expiry > now) {
             document.getElementById('statusTitle').innerText = "Seat Taken!";
             document.getElementById('statusIcon').innerText = "❌";
-            document.getElementById('statusMsg').innerText = "Reserved by " + data.userName;
+            document.getElementById('statusMsg').innerText = "Currently reserved by " + data.userName;
             btnGroup.innerHTML = `<button class="btn-sq" style="background:#ff4757;" onclick="nextScreen('screen4')">REPORT</button><button class="btn-sq" style="background:#555;" onclick="goHome()">FIND NEW</button>`;
         } else {
             document.getElementById('statusTitle').innerText = "Seat Available!";
@@ -264,107 +188,52 @@ function checkSeat() {
 
 function confirmBooking() {
     const name = document.getElementById('nameInput').value || "Student";
-    const expiry = Date.now() + (selectedMinutes * 60 * 1000);
+    const expiry = Date.now() + (totalSeconds * 1000);
     database.ref('seats/' + seatNumber).set({ userName: name, expiry: expiry });
     nextScreen('screen3');
     startTimer();
 }
 
 function startTimer() {
-    let remainingSeconds = selectedMinutes * 60;
     const clock = document.getElementById('timerClock');
-    clearInterval(countdownInterval);
-    countdownInterval = setInterval(() => {
-        if (remainingSeconds <= 0) {
-            clearInterval(countdownInterval);
-            triggerTimeUp();
-            return;
-        }
-        remainingSeconds--;
-        let h = Math.floor(remainingSeconds / 3600);
-        let m = Math.floor((remainingSeconds % 3600) / 60);
-        let s = remainingSeconds % 60;
-        clock.innerText = (h < 10 ? "0"+h : h) + ":" + (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
+    const interval = setInterval(() => {
+        if (totalSeconds <= 0) { clearInterval(interval); return; }
+        totalSeconds--;
+        let m = Math.floor(totalSeconds / 60);
+        let s = totalSeconds % 60;
+        clock.innerText = `00:${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
     }, 1000);
 }
 
-function triggerTimeUp() {
-    // 1. Browser Notification
-    if (Notification.permission === "granted") {
-        new Notification("Ghost Seat Co.", {
-            body: "Your time is up for Seat #" + seatNumber + "! Please clear the seat.",
-            icon: "logo.png"
-        });
-    }
-    
-    // 2. Browser Alert (backup)
-    alert("TIME IS UP! Your session has ended.");
-    
-    // 3. Switch to Timeout Screen
-    nextScreen('screen-timeout');
-}
-
 function nextScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    if(id === 'screen5') loadDashboard();
 }
-function goHome() { window.location.href = 'index.html'; }
 
-// 1. THE SECRET NOTCH LOGIC
-// Put this ID on your notch div: <div class="notch" id="adminSecret"></div>
-document.querySelector('.notch').onclick = function() {
-    // Click the notch 3 times to open admin
-    this.clicks = (this.clicks || 0) + 1;
-    if (this.clicks === 3) {
-        nextScreen('screen5');
-        this.clicks = 0;
-    }
-    setTimeout(() => { this.clicks = 0; }, 2000);
-};
-
-// 2. THE DASHBOARD DATA LOGIC
-function loadLiveDashboard() {
-    const totalSeats = 30; // Total seats in your library
-    const listDiv = document.getElementById('adminUserList');
-    
-    // Listen to real-time changes in Firebase
+function loadDashboard() {
     database.ref('seats').on('value', (snapshot) => {
         const data = snapshot.val();
         const now = Date.now();
-        let occupied = 0;
+        let occ = 0;
         let html = "";
-
         if (data) {
             Object.keys(data).forEach(id => {
-                const seat = data[id];
-                if (seat.expiry > now) {
-                    occupied++;
-                    let time = new Date(seat.expiry).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    html += `
-                        <div class="user-row">
-                            <div class="user-icon">👤</div>
-                            <div style="flex:1;"><b>${seat.userName}</b></div>
-                            <div style="font-size:12px; color:#666;">Until ${time}</div>
-                        </div>`;
+                const s = data[id];
+                if (s.expiry > now) {
+                    occ++;
+                    let t = new Date(s.expiry).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                    html += `<div class="user-row"><div class="user-icon">👤</div><div style="flex:1;"><b>${s.userName}</b></div><div style="font-size:12px;">Until ${t}</div></div>`;
                 }
             });
         }
-        document.getElementById('dashOccupied').innerText = occupied;
-        document.getElementById('dashFree').innerText = totalSeats - occupied;
-        listDiv.innerHTML = html || '<p style="padding:20px; text-align:center; color:#999;">No active users</p>';
+        document.getElementById('dashOccupied').innerText = occ;
+        document.getElementById('dashFree').innerText = 30 - occ;
+        document.getElementById('adminUserList').innerHTML = html || "<p style='padding:20px; text-align:center;'>Empty</p>";
     });
 }
 
-// 3. TRIGGER DASHBOARD ON SCREEN CHANGE
-// Update your existing nextScreen function to include this 'if' statement:
-function nextScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    
-    if(id === 'screen5') {
-        loadLiveDashboard();
-    }
-}
+function goHome() { window.location.href = 'index.html'; }
 </script>
 
 </body>
