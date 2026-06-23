@@ -40,22 +40,14 @@
         .screen-header { padding: 15px 0; font-weight: 600; font-size: 16px; color: #000; text-transform: uppercase; }
         h2 { font-weight: 800; font-size: 24px; margin: 20px 0; }
 
-        /* TIME PICKER STYLES */
         .time-display-box { background: #f8f9fa; width: 100%; padding: 20px; border-radius: 15px; border: 2px dashed var(--figma-blue); margin-bottom: 15px; }
         #durationDisplay { font-size: 22px; font-weight: 900; color: var(--figma-blue); }
         
         .chip-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px; }
-        .chip { 
-            padding: 10px 15px; background: #eee; border-radius: 20px; 
-            font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s;
-        }
+        .chip { padding: 10px 15px; background: #eee; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; }
         .chip.active-chip { background: var(--figma-blue); color: white; }
         
-        .btn-add { 
-            width: 100%; padding: 12px; background: white; 
-            border: 2px solid var(--figma-blue); color: var(--figma-blue); 
-            border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 15px; 
-        }
+        .btn-add { width: 100%; padding: 12px; background: white; border: 2px solid var(--figma-blue); color: var(--figma-blue); border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
 
         .btn-group { display: flex; gap: 15px; width: 100%; margin-top: auto; padding-bottom: 30px; }
         .btn-sq { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 16px; }
@@ -69,7 +61,7 @@
 <div class="phone-container">
     <div class="notch" onclick="nextScreen('screen5')"></div>
 
-    <!-- SCREEN 0: SENSING -->
+    <!-- SENSING -->
     <div id="screen0" class="screen active">
         <div class="screen-header">SENSING...</div>
         <div class="radar"></div>
@@ -77,7 +69,7 @@
         <p>Analyzing Seat <span id="currentSeatID" style="font-weight:bold;">...</span></p>
     </div>
 
-    <!-- SCREEN 1: STATUS -->
+    <!-- STATUS -->
     <div id="screen1" class="screen">
         <div class="screen-header">STATUS SCREEN</div>
         <h2 id="statusTitle">...</h2>
@@ -86,32 +78,27 @@
         <div id="actionButtons" style="display:flex; gap:15px; width:100%;"></div>
     </div>
 
-    <!-- SCREEN 2: BOOKING FORM -->
+    <!-- BOOKING -->
     <div id="screen2" class="screen">
         <div class="screen-header">BOOKING FORM</div>
         <h2>Reserve Seat</h2>
         <div style="text-align: left; width: 100%;">
             <label><b>Name</b></label>
             <input type="text" id="nameInput" placeholder="Enter your name">
-            
             <label><b>Select Duration</b></label>
-            <div class="time-display-box" style="text-align:center;">
-                <span id="durationDisplay">15 minutes</span>
-            </div>
-            
+            <div class="time-display-box" style="text-align:center;"><span id="durationDisplay">15 minutes</span></div>
             <div class="chip-group">
                 <div class="chip" onclick="setDuration(15)">15m</div>
                 <div class="chip" onclick="setDuration(30)">30m</div>
                 <div class="chip" onclick="setDuration(45)">45m</div>
                 <div class="chip" onclick="setDuration(60)">1h</div>
             </div>
-            
             <button class="btn-add" onclick="addMinutes(15)">+ Add 15 Minutes</button>
         </div>
         <button class="btn-long" onclick="confirmBooking()">Confirm Reservation</button>
     </div>
 
-    <!-- SCREEN 3: SUCCESS -->
+    <!-- SUCCESS (TIMER) -->
     <div id="screen3" class="screen">
         <div class="screen-header">SUCCESS</div>
         <div style="font-size: 60px; color: var(--figma-green);">✔️</div>
@@ -123,7 +110,17 @@
         <button class="btn-long" onclick="goHome()">Finish Session</button>
     </div>
 
-    <!-- SCREEN 4: REPORT -->
+    <!-- TIME'S UP SCREEN (NEW) -->
+    <div id="screen-timeout" class="screen">
+        <div class="screen-header">NOTIFICATION</div>
+        <div style="font-size: 80px; margin: 40px;">⏰</div>
+        <h2 style="color: var(--figma-red);">TIME'S UP!</h2>
+        <p>Your session for Seat <span id="timeoutSeatID"></span> has ended.</p>
+        <p style="margin-top: 10px; color: #666;">Please clear the seat for the next student.</p>
+        <button class="btn-long" onclick="goHome()">Done</button>
+    </div>
+
+    <!-- REPORT -->
     <div id="screen4" class="screen">
         <div class="screen-header">REPORT</div>
         <div style="font-size: 80px; margin: 40px;">😊</div>
@@ -131,16 +128,15 @@
         <button class="btn-long" onclick="goHome()">Done</button>
     </div>
 
-    <!-- SCREEN 5: ADMIN -->
+    <!-- ADMIN -->
     <div id="screen5" class="screen">
-        <div class="screen-header">ADMIN HISTORY</div>
+        <div class="screen-header">ADMIN</div>
         <div id="historyList" style="width:100%; text-align:left;"></div>
         <button class="btn-long" onclick="nextScreen('screen0')">Restart</button>
     </div>
 </div>
 
 <script>
-// !!! PASTE YOUR FIREBASE CONFIG BOX BELOW !!!
 const firebaseConfig = {
   apiKey: "AIzaSyBo-83st_6iUSVt72cPyrG29ChnfNZr53k",
   authDomain: "ghostseat.firebaseapp.com",
@@ -158,48 +154,38 @@ const database = firebase.database();
 const urlParams = new URLSearchParams(window.location.search);
 const seatNumber = urlParams.get('seat') || "01"; 
 
-let selectedMinutes = 15; // Track user choice
+let selectedMinutes = 15;
 let countdownInterval;
 
 window.onload = function() {
     document.getElementById('currentSeatID').innerText = "#" + seatNumber;
     document.getElementById('successSeatID').innerText = "#" + seatNumber;
+    document.getElementById('timeoutSeatID').innerText = "#" + seatNumber;
+    
+    // Request notification permission immediately
+    if ("Notification" in window) {
+        Notification.requestPermission();
+    }
+
     setTimeout(checkSeat, 800); 
 };
 
-// --- TIME PICKER FUNCTIONS ---
-function setDuration(mins) {
-    selectedMinutes = mins;
-    updateDurationText();
-}
-
-function addMinutes(mins) {
-    selectedMinutes += mins;
-    updateDurationText();
-}
-
+function setDuration(mins) { selectedMinutes = mins; updateDurationText(); }
+function addMinutes(mins) { selectedMinutes += mins; updateDurationText(); }
 function updateDurationText() {
     let display = document.getElementById('durationDisplay');
-    if (selectedMinutes >= 60) {
-        let h = Math.floor(selectedMinutes / 60);
-        let m = selectedMinutes % 60;
-        display.innerText = h + (h === 1 ? " hour " : " hours ") + (m > 0 ? m + " mins" : "");
-    } else {
-        display.innerText = selectedMinutes + " minutes";
-    }
+    display.innerText = selectedMinutes >= 60 ? Math.floor(selectedMinutes/60) + "h " + (selectedMinutes%60) + "m" : selectedMinutes + " minutes";
 }
 
-// --- LOGIC FUNCTIONS ---
 function checkSeat() {
     database.ref('seats/' + seatNumber).once('value').then((snapshot) => {
         const data = snapshot.val();
         const now = Date.now();
         const btnGroup = document.getElementById('actionButtons');
-
         if (data && data.expiry > now) {
             document.getElementById('statusTitle').innerText = "Seat Taken!";
             document.getElementById('statusIcon').innerText = "❌";
-            document.getElementById('statusMsg').innerText = "Currently reserved by " + data.userName;
+            document.getElementById('statusMsg').innerText = "Reserved by " + data.userName;
             btnGroup.innerHTML = `<button class="btn-sq" style="background:#ff4757;" onclick="nextScreen('screen4')">REPORT</button><button class="btn-sq" style="background:#555;" onclick="goHome()">FIND NEW</button>`;
         } else {
             document.getElementById('statusTitle').innerText = "Seat Available!";
@@ -214,10 +200,7 @@ function checkSeat() {
 function confirmBooking() {
     const name = document.getElementById('nameInput').value || "Student";
     const expiry = Date.now() + (selectedMinutes * 60 * 1000);
-
     database.ref('seats/' + seatNumber).set({ userName: name, expiry: expiry });
-    database.ref('history').push({ name: name, seat: seatNumber, time: new Date().toLocaleTimeString() });
-
     nextScreen('screen3');
     startTimer();
 }
@@ -225,12 +208,11 @@ function confirmBooking() {
 function startTimer() {
     let remainingSeconds = selectedMinutes * 60;
     const clock = document.getElementById('timerClock');
-    
     clearInterval(countdownInterval);
     countdownInterval = setInterval(() => {
         if (remainingSeconds <= 0) {
             clearInterval(countdownInterval);
-            clock.innerText = "00:00:00";
+            triggerTimeUp();
             return;
         }
         remainingSeconds--;
@@ -239,6 +221,22 @@ function startTimer() {
         let s = remainingSeconds % 60;
         clock.innerText = (h < 10 ? "0"+h : h) + ":" + (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
     }, 1000);
+}
+
+function triggerTimeUp() {
+    // 1. Browser Notification
+    if (Notification.permission === "granted") {
+        new Notification("Ghost Seat Co.", {
+            body: "Your time is up for Seat #" + seatNumber + "! Please clear the seat.",
+            icon: "logo.png"
+        });
+    }
+    
+    // 2. Browser Alert (backup)
+    alert("TIME IS UP! Your session has ended.");
+    
+    // 3. Switch to Timeout Screen
+    nextScreen('screen-timeout');
 }
 
 function nextScreen(id) {
