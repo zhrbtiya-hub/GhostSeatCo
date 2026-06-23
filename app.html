@@ -71,7 +71,7 @@
             <div style="width: 80px; height: 80px; border: 5px solid #eee; border-top: 5px solid var(--figma-blue); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
         </div>
         <h2 style="margin-top: 40px;">Ghost Sensor v1.0</h2>
-        <p style="color: #666;">Analyzing Seat #L2-04...</p>
+        <p style="color: #666;">Analyzing Seat <span id="currentSeatID" style="font-weight:bold;">...</span></p>
     </div>
 
     <!-- SCREEN 1: STATUS SCREEN -->
@@ -110,7 +110,7 @@
     <div id="screen3" class="screen">
         <div class="screen-header">SUCCESS SCREEN</div>
         <div style="font-size: 80px; color: var(--figma-green); margin: 20px 0;">✔️</div>
-        <h2>Seat Reserved!</h2>
+        <h2>Seat <span id="successSeatID">...</span> Reserved!</h2>
         <p>Your session is active.</p>
         <div style="margin: 30px 0; background: #f8f9fa; padding: 25px; border-radius: 20px; width: 100%; border: 2px solid var(--figma-green);">
             <p style="font-weight: bold; color: #666; margin-bottom: 10px;">🕒 TIME REMAINING</p>
@@ -136,95 +136,93 @@
 </div>
 
 <script>
-    let totalSeconds = 900; // Default 15 mins
-    let countdownInterval;
+    // --- 1. NEW DYNAMIC SEAT LOGIC ---
+// This reads the "?seat=01" from your web link
+const urlParams = new URLSearchParams(window.location.search);
+const seatNumber = urlParams.get('seat') || "L2-04"; // Default if no seat is found
 
-    window.onload = function() {
-        setTimeout(runSensor, 3000);
-    };
+// Update the labels on the screen immediately
+document.getElementById('currentSeatID').innerText = "#" + seatNumber;
+document.getElementById('successSeatID').innerText = "#" + seatNumber;
 
-    function runSensor() {
-        const isSeatEmpty = Math.random() > 0.5;
-        const btnGroup = document.getElementById('actionButtons');
-        
-        if (isSeatEmpty) {
-            document.getElementById('statusTitle').innerText = "Seat Available!";
-            document.getElementById('statusIcon').innerText = "✅";
-            document.getElementById('statusMsg').innerText = "Wanna book?";
-            btnGroup.innerHTML = `
-                <button class="btn-sq" style="background: var(--figma-green);" onclick="nextScreen('screen2')">YES</button>
-                <button class="btn-sq" style="background: var(--figma-red);" onclick="goHome()">NO</button>
-            `;
-        } else {
-            document.getElementById('statusTitle').innerText = "Seat Occupied!";
-            document.getElementById('statusIcon').innerText = "❌";
-            document.getElementById('statusMsg').innerText = "Is someone actually there?";
-            btnGroup.innerHTML = `
-                <button class="btn-sq" style="background: var(--figma-red);" onclick="nextScreen('screen4')">REPORT GHOST</button>
-                <button class="btn-sq" style="background: #555;" onclick="goHome()">FIND NEW</button>
-            `;
+
+// --- 2. EXISTING APP LOGIC ---
+let totalSeconds = 900; 
+let countdownInterval;
+
+window.onload = function() {
+    // Start sensing animation automatically
+    setTimeout(runSensor, 3000);
+};
+
+function runSensor() {
+    const isSeatEmpty = Math.random() > 0.5;
+    const btnGroup = document.getElementById('actionButtons');
+    
+    if (isSeatEmpty) {
+        document.getElementById('statusTitle').innerText = "Seat Available!";
+        document.getElementById('statusIcon').innerText = "✅";
+        document.getElementById('statusMsg').innerText = "Wanna book?";
+        btnGroup.innerHTML = `
+            <button class="btn-sq" style="background: var(--figma-green);" onclick="nextScreen('screen2')">YES</button>
+            <button class="btn-sq" style="background: var(--figma-red);" onclick="goHome()">NO</button>
+        `;
+    } else {
+        document.getElementById('statusTitle').innerText = "Seat Occupied!";
+        document.getElementById('statusIcon').innerText = "❌";
+        document.getElementById('statusMsg').innerText = "Is someone actually there?";
+        btnGroup.innerHTML = `
+            <button class="btn-sq" style="background: var(--figma-red);" onclick="nextScreen('screen4')">REPORT GHOST</button>
+            <button class="btn-sq" style="background: #555;" onclick="goHome()">FIND NEW</button>
+        `;
+    }
+    nextScreen('screen1');
+}
+
+// Time Selection
+function setDuration(mins) {
+    totalSeconds = mins * 60;
+    updateDisplay();
+}
+
+function addTime(mins) {
+    totalSeconds += (mins * 60);
+    updateDisplay();
+}
+
+function updateDisplay() {
+    let h = Math.floor(totalSeconds / 3600);
+    let m = Math.floor((totalSeconds % 3600) / 60);
+    let timeText = (h > 0 ? h + "h " : "") + m + " minutes";
+    document.getElementById('durationDisplay').innerText = timeText;
+}
+
+// Countdown Logic
+function confirmBooking() {
+    nextScreen('screen3');
+    startCountdown();
+}
+
+function startCountdown() {
+    clearInterval(countdownInterval);
+    countdownInterval = setInterval(() => {
+        if (totalSeconds <= 0) {
+            clearInterval(countdownInterval);
+            alert("Time's up!");
+            return;
         }
-        nextScreen('screen1');
-    }
-
-    // Time Selection Logic
-    function setDuration(mins) {
-        totalSeconds = mins * 60;
-        updateDisplay();
-    }
-
-    function addTime(mins) {
-        totalSeconds += (mins * 60);
-        updateDisplay();
-    }
-
-    function updateDisplay() {
+        totalSeconds--;
         let h = Math.floor(totalSeconds / 3600);
         let m = Math.floor((totalSeconds % 3600) / 60);
-        let timeText = "";
-        if (h > 0) timeText += h + (h === 1 ? " hour " : " hours ");
-        if (m > 0 || h === 0) timeText += m + " minutes";
-        document.getElementById('durationDisplay').innerText = timeText;
-    }
+        let s = totalSeconds % 60;
+        document.getElementById('timerClock').innerText = 
+            (h < 10 ? "0"+h : h) + ":" + (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
+    }, 1000);
+}
 
-    // Countdown Logic
-    function confirmBooking() {
-        nextScreen('screen3');
-        startCountdown();
-    }
+function nextScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
 
-    function startCountdown() {
-        // Clear any old timer
-        clearInterval(countdownInterval);
-
-        countdownInterval = setInterval(() => {
-            if (totalSeconds <= 0) {
-                clearInterval(countdownInterval);
-                document.getElementById('timerClock').innerText = "00:00:00";
-                alert("Time's up! The seat is now available.");
-                return;
-            }
-
-            totalSeconds--;
-
-            let h = Math.floor(totalSeconds / 3600);
-            let m = Math.floor((totalSeconds % 3600) / 60);
-            let s = totalSeconds % 60;
-
-            document.getElementById('timerClock').innerText = 
-                (h < 10 ? "0"+h : h) + ":" + 
-                (m < 10 ? "0"+m : m) + ":" + 
-                (s < 10 ? "0"+s : s);
-        }, 1000);
-    }
-
-    function nextScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    function goHome() { window.location.href = 'index.html'; }
-</script>
-
-</body>
-</html>
+function goHome() { window.location.href = 'index.html'; }
