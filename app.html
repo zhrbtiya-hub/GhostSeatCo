@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ghost Seat App</title>
+    <!-- FIXED: Added missing > below -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -29,34 +30,46 @@
             cursor: pointer; z-index: 10;
         }
 
+        /* FIXED: Screen Switcher Logic */
         .screen {
-            flex: 1; display: none; flex-direction: column; align-items: center;
-            padding: 20px; text-align: center; animation: fadeIn 0.4s ease-in;
+            flex: 1; 
+            display: none; /* Hidden by default */
+            flex-direction: column; 
+            align-items: center;
+            padding: 20px; 
+            text-align: center; 
         }
-        .active { display: flex; }
+
+        .screen.active {
+            display: flex !important; /* Shows when active */
+            animation: fadeIn 0.4s ease-in;
+        }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* FIXED: Added Radar Pulse Animation */
+        .radar {
+            width: 120px; height: 120px; border: 4px solid var(--ghost-blue);
+            border-radius: 50%; margin: 40px auto; position: relative;
+            animation: pulse 0.8s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.1); opacity: 0; }
+        }
 
         .screen-header { padding: 15px 0; font-weight: 600; font-size: 16px; color: #000; text-transform: uppercase; letter-spacing: 1px; }
         h2 { font-weight: 800; font-size: 24px; margin: 20px 0; }
         
-        /* Graphics */
         .smiley-box { width: 140px; height: 140px; background: var(--light-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 80px; margin: 20px 0; }
-        .report-option { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 10px; text-align: left; font-weight: 600; cursor: pointer; }
-        
-        /* Time Selection Components */
         .time-display-box { background: #f8f9fa; width: 100%; padding: 20px; border-radius: 15px; border: 2px dashed var(--figma-blue); margin-bottom: 15px; }
         #durationDisplay { font-size: 22px; font-weight: 900; color: var(--figma-blue); }
         .chip-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px; }
         .chip { padding: 8px 12px; background: #eee; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .chip.active-chip { background: var(--figma-blue); color: white; }
         .btn-add { width: 100%; padding: 10px; background: white; border: 2px solid var(--figma-blue); color: var(--figma-blue); border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
-
-        /* Buttons */
         .btn-group { display: flex; gap: 15px; width: 100%; margin-top: auto; padding-bottom: 30px; }
         .btn-sq { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 16px; }
         .btn-long { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--figma-blue); color: white; font-weight: bold; font-size: 16px; margin-top: auto; margin-bottom: 30px; cursor: pointer; }
-        
-        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -67,10 +80,9 @@
     <!-- SCREEN 0: SENSING -->
     <div id="screen0" class="screen active">
         <div class="screen-header">SENSING...</div>
-        <div style="margin-top: 100px;">
-            <div style="width: 80px; height: 80px; border: 5px solid #eee; border-top: 5px solid var(--figma-blue); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-        </div>
-        <h2 style="margin-top: 40px;">Ghost Sensor v1.0</h2>
+        <!-- FIXED: Using the Radar class here -->
+        <div class="radar"></div>
+        <h2 style="margin-top: 20px;">Ghost Sensor v1.0</h2>
         <p style="color: #666;">Analyzing Seat <span id="currentSeatID" style="font-weight:bold;">...</span></p>
     </div>
 
@@ -106,12 +118,11 @@
         <button class="btn-long" onclick="confirmBooking()">Reserve</button>
     </div>
 
-    <!-- SCREEN 3: SUCCESS SCREEN (WITH COUNTDOWN) -->
+    <!-- SCREEN 3: SUCCESS SCREEN -->
     <div id="screen3" class="screen">
         <div class="screen-header">SUCCESS SCREEN</div>
         <div style="font-size: 80px; color: var(--figma-green); margin: 20px 0;">✔️</div>
         <h2>Seat <span id="successSeatID">...</span> Reserved!</h2>
-        <p>Your session is active.</p>
         <div style="margin: 30px 0; background: #f8f9fa; padding: 25px; border-radius: 20px; width: 100%; border: 2px solid var(--figma-green);">
             <p style="font-weight: bold; color: #666; margin-bottom: 10px;">🕒 TIME REMAINING</p>
             <h1 id="timerClock" style="font-size: 48px; font-weight: 900; letter-spacing: 2px; color: #333;">00:15:00</h1>
@@ -136,102 +147,73 @@
 </div>
 
 <script>
-  // 1. GLOBAL VARIABLES
-let totalSeconds = 900; // Default 15 mins
-let countdownInterval;
+    let totalSeconds = 900; 
+    let countdownInterval;
 
-// 2. DYNAMIC SEAT LOGIC (Reads from the QR Link)
-// Example: app.html?seat=05
-const urlParams = new URLSearchParams(window.location.search);
-const seatNumber = urlParams.get('seat') || "L2-04"; 
+    const urlParams = new URLSearchParams(window.location.search);
+    const seatNumber = urlParams.get('seat') || "L2-04"; 
 
-// 3. STARTUP LOGIC
-window.onload = function() {
-    // Immediately update seat labels
-    document.getElementById('currentSeatID').innerText = "#" + seatNumber;
-    document.getElementById('successSeatID').innerText = "#" + seatNumber;
-    
-    // Start the sensing timer (Set to 1.5 seconds for speed)
-    console.log("Sensing started...");
-    setTimeout(runSensor, 1500); 
-};
+    window.onload = function() {
+        document.getElementById('currentSeatID').innerText = "#" + seatNumber;
+        document.getElementById('successSeatID').innerText = "#" + seatNumber;
+        setTimeout(runSensor, 1500); 
+    };
 
-// 4. SENSING LOGIC (Determines if seat is free or taken)
-function runSensor() {
-    const isSeatEmpty = Math.random() > 0.5; // 50/50 chance for demo
-    const btnGroup = document.getElementById('actionButtons');
-    
-    if (isSeatEmpty) {
-        document.getElementById('statusTitle').innerText = "Seat Available!";
-        document.getElementById('statusIcon').innerText = "✅";
-        document.getElementById('statusMsg').innerText = "Wanna book?";
-        btnGroup.innerHTML = `
-            <button class="btn-sq" style="background: #2ecc71; color:white; border:none; padding:15px; border-radius:10px; flex:1; cursor:pointer; font-weight:bold;" onclick="nextScreen('screen2')">YES</button>
-            <button class="btn-sq" style="background: #ff4757; color:white; border:none; padding:15px; border-radius:10px; flex:1; cursor:pointer; font-weight:bold;" onclick="goHome()">NO</button>
-        `;
-    } else {
-        document.getElementById('statusTitle').innerText = "Seat Occupied!";
-        document.getElementById('statusIcon').innerText = "❌";
-        document.getElementById('statusMsg').innerText = "Is someone actually there?";
-        btnGroup.innerHTML = `
-            <button class="btn-sq" style="background: #ff4757; color:white; border:none; padding:15px; border-radius:10px; flex:1; cursor:pointer; font-weight:bold;" onclick="nextScreen('screen4')">REPORT GHOST</button>
-            <button class="btn-sq" style="background: #555; color:white; border:none; padding:15px; border-radius:10px; flex:1; cursor:pointer; font-weight:bold;" onclick="goHome()">FIND NEW</button>
-        `;
-    }
-    nextScreen('screen1');
-}
-
-// 5. BOOKING FORM LOGIC
-function setDuration(mins) {
-    totalSeconds = mins * 60;
-    updateDisplay();
-}
-
-function addTime(mins) {
-    totalSeconds += (mins * 60);
-    updateDisplay();
-}
-
-function updateDisplay() {
-    let h = Math.floor(totalSeconds / 3600);
-    let m = Math.floor((totalSeconds % 3600) / 60);
-    let timeText = (h > 0 ? h + "h " : "") + m + " minutes";
-    document.getElementById('durationDisplay').innerText = timeText;
-}
-
-// 6. SUCCESS & COUNTDOWN LOGIC
-function confirmBooking() {
-    nextScreen('screen3');
-    startCountdown();
-}
-
-function startCountdown() {
-    clearInterval(countdownInterval);
-    countdownInterval = setInterval(() => {
-        if (totalSeconds <= 0) {
-            clearInterval(countdownInterval);
-            document.getElementById('timerClock').innerText = "00:00:00";
-            return;
+    function runSensor() {
+        const isSeatEmpty = Math.random() > 0.5;
+        const btnGroup = document.getElementById('actionButtons');
+        
+        if (isSeatEmpty) {
+            document.getElementById('statusTitle').innerText = "Seat Available!";
+            document.getElementById('statusIcon').innerText = "✅";
+            document.getElementById('statusMsg').innerText = "Wanna book?";
+            btnGroup.innerHTML = `
+                <button class="btn-sq" style="background: #2ecc71;" onclick="nextScreen('screen2')">YES</button>
+                <button class="btn-sq" style="background: #ff4757;" onclick="goHome()">NO</button>
+            `;
+        } else {
+            document.getElementById('statusTitle').innerText = "Seat Occupied!";
+            document.getElementById('statusIcon').innerText = "❌";
+            document.getElementById('statusMsg').innerText = "Is someone actually there?";
+            btnGroup.innerHTML = `
+                <button class="btn-sq" style="background: #ff4757;" onclick="nextScreen('screen4')">REPORT GHOST</button>
+                <button class="btn-sq" style="background: #555;" onclick="goHome()">FIND NEW</button>
+            `;
         }
-        totalSeconds--;
+        nextScreen('screen1');
+    }
+
+    function setDuration(mins) { totalSeconds = mins * 60; updateDisplay(); }
+    function addTime(mins) { totalSeconds += (mins * 60); updateDisplay(); }
+    function updateDisplay() {
         let h = Math.floor(totalSeconds / 3600);
         let m = Math.floor((totalSeconds % 3600) / 60);
-        let s = totalSeconds % 60;
-        
-        document.getElementById('timerClock').innerText = 
-            (h < 10 ? "0"+h : h) + ":" + (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
-    }, 1000);
-}
+        document.getElementById('durationDisplay').innerText = (h > 0 ? h + "h " : "") + m + " minutes";
+    }
 
-// 7. UTILITY FUNCTIONS
-function nextScreen(id) {
-    // Remove 'active' from all screens
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    // Add 'active' to the target screen
-    const target = document.getElementById(id);
-    if(target) target.classList.add('active');
-}
+    function confirmBooking() { nextScreen('screen3'); startCountdown(); }
 
-function goHome() { 
-    window.location.href = 'index.html'; 
-}
+    function startCountdown() {
+        clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => {
+            if (totalSeconds <= 0) { clearInterval(countdownInterval); return; }
+            totalSeconds--;
+            let h = Math.floor(totalSeconds / 3600);
+            let m = Math.floor((totalSeconds % 3600) / 60);
+            let s = totalSeconds % 60;
+            document.getElementById('timerClock').innerText = 
+                (h < 10 ? "0"+h : h) + ":" + (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
+        }, 1000);
+    }
+
+    function nextScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const target = document.getElementById(id);
+        if(target) target.classList.add('active');
+    }
+
+    function goHome() { window.location.href = 'index.html'; }
+</script>
+
+</body>
+</html>

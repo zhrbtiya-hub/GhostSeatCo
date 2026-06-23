@@ -213,3 +213,40 @@ ul li::before { content: "• "; color: #000; }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
 .available { background: #eee; } .occupied { background: #ff4d4d; }
 }
+
+/* --- THE SCREEN SWITCHER LOGIC --- */
+
+/* 1. This hides all screens by default */
+.screen {
+    display: none; 
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* 2. This is the ONLY screen that shows up */
+.screen.active {
+    display: flex !important; 
+}
+
+/* 3. The Radar Animation (The one you were missing) */
+.radar {
+    width: 120px;
+    height: 120px;
+    border: 4px solid #9AD8F5;
+    border-radius: 50%;
+    margin: 40px auto;
+    position: relative;
+    animation: pulse 0.8s infinite; 
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    100% { transform: scale(1.1); opacity: 0; }
+}
+
+/* 4. The Spinner (The little circle that spins) */
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
