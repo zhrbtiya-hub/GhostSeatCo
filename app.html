@@ -3,57 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghost Seat | Smart App</title>
+    <title>Ghost Seat | Smart System</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    
-    <!-- Firebase Libraries -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
-        :root {
-            --figma-green: #2ecc71; --figma-red: #ff4757; --figma-blue: #1e67fb;
-            --ghost-blue: #9AD8F5; --light-blue: #e1f0ff;
-        }
-
+        :root { --figma-green: #2ecc71; --figma-red: #ff4757; --figma-blue: #1e67fb; --ghost-blue: #9AD8F5; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #111; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #000; }
-
-        .phone-container {
-            width: 375px; height: 750px; background: white; border-radius: 40px;
-            position: relative; overflow: hidden; border: 8px solid #333;
-            display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
-        .notch { 
-            width: 150px; height: 25px; background: #333; margin: 0 auto; 
-            border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; 
-            cursor: pointer; z-index: 9999;
-        }
-
+        .phone-container { width: 375px; height: 750px; background: white; border-radius: 40px; position: relative; overflow: hidden; border: 8px solid #333; display: flex; flex-direction: column; }
+        .notch { width: 150px; height: 25px; background: #333; margin: 0 auto; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; cursor: pointer; z-index: 9999; }
         .screen { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; text-align: center; width: 100%; }
         .active { display: flex !important; }
-
-        .radar {
-            width: 100px; height: 100px; border: 4px solid var(--ghost-blue);
-            border-radius: 50%; margin: 40px auto; position: relative;
-            animation: pulse 0.6s infinite; 
-        }
+        .radar { width: 100px; height: 100px; border: 4px solid var(--ghost-blue); border-radius: 50%; margin: 40px auto; animation: pulse 0.6s infinite; }
         @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.1); opacity: 0; } }
-
-        .screen-header { padding: 15px 0; font-weight: 600; font-size: 16px; color: #000; text-transform: uppercase; }
+        .screen-header { padding: 15px 0; font-weight: 600; font-size: 16px; text-transform: uppercase; }
         h2 { font-weight: 800; font-size: 24px; margin: 20px 0; }
-        .btn-group { display: flex; gap: 15px; width: 100%; margin-top: auto; padding-bottom: 30px; }
         .btn-sq { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; color: white; }
-        .btn-long { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--figma-blue); color: white; font-weight: bold; cursor: pointer; margin-top: auto; margin-bottom: 30px; }
-        input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ccc; margin: 10px 0; font-size: 16px; }
+        .btn-long { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--figma-blue); color: white; font-weight: bold; cursor: pointer; margin-top: auto; margin-bottom: 20px; }
+        input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 10px; font-size: 16px; }
         .timer-box { margin: 20px 0; background: #f8f9fa; padding: 25px; border-radius: 20px; width: 100%; border: 2px solid var(--figma-green); }
-
-        /* DASHBOARD UI */
         .dash-card { background: #fff; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); width: 100%; margin-bottom: 10px; }
-        .user-list-container { background: #f8f9fa; border-radius: 15px; padding: 5px; width: 100%; max-height: 250px; overflow-y: auto; }
+        .user-list { background: #f8f9fa; border-radius: 15px; width: 100%; max-height: 300px; overflow-y: auto; text-align: left; }
         .user-row { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
-        .user-icon { width: 35px; height: 35px; background: #ddd; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center; }
+        .time-chip { padding: 8px 12px; background: #eee; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; margin: 5px; }
     </style>
 </head>
 <body>
@@ -65,16 +39,16 @@
     <div id="screen0" class="screen active">
         <div class="screen-header">SENSING...</div>
         <div class="radar"></div>
-        <h2 style="margin-top: 20px;">Ghost Sensor v1.0</h2>
-        <p>Analyzing Seat <span id="currentSeatID" style="font-weight:bold;">...</span></p>
+        <h2>Ghost Sensor v1.0</h2>
+        <p>Analyzing Seat <span id="currentSeatID">#...</span></p>
     </div>
 
     <!-- SCREEN 1: STATUS -->
     <div id="screen1" class="screen">
-        <div class="screen-header">STATUS SCREEN</div>
+        <div class="screen-header">STATUS</div>
         <h2 id="statusTitle">...</h2>
         <div id="statusIcon" style="font-size: 80px; margin: 20px 0;">💺</div>
-        <p id="statusMsg" style="font-weight: 500; font-size: 16px; padding: 0 10px; margin-bottom: 20px;"></p>
+        <p id="statusMsg" style="margin-bottom: 20px;"></p>
         <div id="actionButtons" style="display:flex; gap:15px; width:100%;"></div>
     </div>
 
@@ -82,12 +56,15 @@
     <div id="screen2" class="screen">
         <div class="screen-header">RESERVE</div>
         <h2>Booking Form</h2>
-        <div style="text-align: left; width: 100%;">
-            <label><b>Name</b></label>
-            <input type="text" id="nameInput" placeholder="Enter name">
-            <p style="margin-top: 15px;"><b>Duration: 15 Minutes</b></p>
+        <input type="text" id="nameInput" placeholder="Enter your name">
+        <p style="font-weight:bold; margin: 10px 0;">Duration: <span id="durationDisp">15</span> mins</p>
+        <div style="display:flex; flex-wrap:wrap; justify-content:center;">
+            <div class="time-chip" onclick="setMins(15)">15m</div>
+            <div class="time-chip" onclick="setMins(30)">30m</div>
+            <div class="time-chip" onclick="setMins(60)">1h</div>
+            <div class="time-chip" onclick="addMins(15)" style="background:var(--ghost-blue);">+15m</div>
         </div>
-        <button class="btn-long" onclick="confirmBooking()">Confirm</button>
+        <button class="btn-long" onclick="confirmBooking()">Confirm Reservation</button>
     </div>
 
     <!-- SCREEN 3: SUCCESS -->
@@ -96,41 +73,38 @@
         <div style="font-size: 60px; color: var(--figma-green);">✔️</div>
         <h2>Seat <span id="successSeatID"></span> Reserved!</h2>
         <div class="timer-box">
-            <p>🕒 TIME LEFT</p>
             <h1 id="timerClock" style="font-size: 40px;">00:15:00</h1>
         </div>
-        <button class="btn-long" onclick="goHome()">Finish</button>
+        <button class="btn-long" onclick="goHome()">Back to Home</button>
     </div>
 
     <!-- SCREEN 4: REPORT -->
     <div id="screen4" class="screen">
         <div class="screen-header">REPORT</div>
-        <div style="font-size: 80px; margin: 40px;">😊</div>
-        <h2>Thanks for the report!</h2>
-        <button class="btn-long" onclick="goHome()">Back to Home</button>
+        <div style="font-size: 80px; margin: 40px;">📩</div>
+        <h2>Report Sent!</h2>
+        <button class="btn-long" onclick="goHome()">Done</button>
     </div>
 
     <!-- SCREEN 5: ADMIN DASHBOARD -->
     <div id="screen5" class="screen">
         <div class="screen-header" style="font-weight:bold;">ADMIN DASHBOARD</div>
-        <div style="width:100%; padding:10px; text-align:left;">
+        <div style="width:100%; padding:10px;">
             <div class="dash-card" style="border-left: 5px solid var(--figma-red);">
-                <div><p style="font-size:12px;">Occupied</p><h2 id="dashOccupied">0</h2></div>
-                <div>👥</div>
+                <span>Occupied</span> <h2 id="dashOcc">0</h2>
             </div>
             <div class="dash-card" style="border-left: 5px solid var(--figma-green);">
-                <div><p style="font-size:12px;">Free</p><h2 id="dashFree">30</h2></div>
-                <div>🪑</div>
+                <span>Free</span> <h2 id="dashFree">30</h2>
             </div>
-            <p style="font-weight:bold; margin: 15px 0 10px 0;">Current Users</p>
-            <div id="adminUserList" class="user-list-container"></div>
+            <p style="font-weight:bold; margin: 15px 0 5px 0; text-align:left;">Active Users:</p>
+            <div id="adminUserList" class="user-list"></div>
             <button class="btn-long" style="background:#555; margin-top:20px;" onclick="nextScreen('screen0')">Exit Admin</button>
         </div>
     </div>
 </div>
 
 <script>
-// 1. FIREBASE CONFIG
+// !!! PASTE YOUR FIREBASE CONFIG HERE !!!
 const firebaseConfig = {
   apiKey: "AIzaSyBo-83st_6iUSVt72cPyrG29ChnfNZr53k",
   authDomain: "ghostseat.firebaseapp.com",
@@ -143,66 +117,90 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+const db = firebase.database();
 
-// 2. GLOBALS
 const urlParams = new URLSearchParams(window.location.search);
-const seatNumber = urlParams.get('seat') || "01"; 
-let totalSeconds = 900; 
+const seatNum = urlParams.get('seat') || "01"; 
+let totalSecs = 900; 
 
 window.onload = function() {
-    document.getElementById('currentSeatID').innerText = "#" + seatNumber;
-    document.getElementById('successSeatID').innerText = "#" + seatNumber;
+    document.getElementById('currentSeatID').innerText = "#" + seatNum;
+    document.getElementById('successSeatID').innerText = "#" + seatNum;
     
-    // Secret Notch Click Logic (Click 3 times)
+    // Secret Notch Click
     let clicks = 0;
-    document.getElementById('adminNotch').onclick = function() {
+    document.getElementById('adminNotch').onclick = () => {
         clicks++;
-        if (clicks === 3) { nextScreen('screen5'); clicks = 0; }
-        setTimeout(() => { clicks = 0; }, 2000);
+        if(clicks === 3) { nextScreen('screen5'); clicks = 0; }
+        setTimeout(() => clicks = 0, 2000);
     };
 
-    setTimeout(checkSeat, 800); 
+    setTimeout(checkSeat, 1000); 
 };
 
 function checkSeat() {
-    database.ref('seats/' + seatNumber).once('value').then((snapshot) => {
-        const data = snapshot.val();
+    db.ref('seats/' + seatNum).once('value').then(snap => {
+        const data = snap.val();
         const now = Date.now();
-        const btnGroup = document.getElementById('actionButtons');
+        const btnArea = document.getElementById('actionButtons');
 
         if (data && data.expiry > now) {
             document.getElementById('statusTitle').innerText = "Seat Taken!";
             document.getElementById('statusIcon').innerText = "❌";
-            document.getElementById('statusMsg').innerText = "Currently reserved by " + data.userName;
-            btnGroup.innerHTML = `<button class="btn-sq" style="background:#ff4757;" onclick="nextScreen('screen4')">REPORT</button><button class="btn-sq" style="background:#555;" onclick="goHome()">FIND NEW</button>`;
+            document.getElementById('statusMsg').innerText = "Reserved by " + data.userName;
+            btnArea.innerHTML = `<button onclick="nextScreen('screen4')" style="background:var(--figma-red); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold;">REPORT</button>
+                                 <button onclick="goHome()" style="background:#555; flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold;">FIND NEW</button>`;
         } else {
             document.getElementById('statusTitle').innerText = "Seat Available!";
             document.getElementById('statusIcon').innerText = "✅";
-            document.getElementById('statusMsg').innerText = "Wanna book Seat #" + seatNumber + "?";
-            btnGroup.innerHTML = `<button class="btn-sq" style="background:#2ecc71;" onclick="nextScreen('screen2')">YES</button><button class="btn-sq" style="background:#ff4757;" onclick="goHome()">NO</button>`;
+            document.getElementById('statusMsg').innerText = "Book Seat #" + seatNum + "?";
+            btnArea.innerHTML = `<button onclick="nextScreen('screen2')" style="background:var(--figma-green); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold;">YES</button>
+                                 <button onclick="goHome()" style="background:var(--figma-red); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold;">NO</button>`;
         }
         nextScreen('screen1');
     });
 }
 
 function confirmBooking() {
-    const name = document.getElementById('nameInput').value || "Student";
-    const expiry = Date.now() + (totalSeconds * 1000);
-    database.ref('seats/' + seatNumber).set({ userName: name, expiry: expiry });
-    nextScreen('screen3');
-    startTimer();
+    const name = document.getElementById('nameInput').value || "Guest";
+    const expiry = Date.now() + (totalSecs * 1000);
+    
+    db.ref('seats/' + seatNum).set({ userName: name, expiry: expiry }).then(() => {
+        nextScreen('screen3');
+        startTimer();
+    });
 }
 
 function startTimer() {
     const clock = document.getElementById('timerClock');
     const interval = setInterval(() => {
-        if (totalSeconds <= 0) { clearInterval(interval); return; }
-        totalSeconds--;
-        let m = Math.floor(totalSeconds / 60);
-        let s = totalSeconds % 60;
+        if (totalSecs <= 0) { clearInterval(interval); return; }
+        totalSecs--;
+        let m = Math.floor(totalSecs / 60);
+        let s = totalSecs % 60;
         clock.innerText = `00:${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
     }, 1000);
+}
+
+function loadDashboard() {
+    db.ref('seats').on('value', snap => {
+        const data = snap.val();
+        const now = Date.now();
+        let occ = 0;
+        let html = "";
+        if (data) {
+            Object.keys(data).forEach(id => {
+                if (data[id].expiry > now) {
+                    occ++;
+                    let t = new Date(data[id].expiry).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                    html += `<div class="user-row"><div style="flex:1;"><b>${data[id].userName}</b> (Seat ${id})</div><div style="font-size:12px;">Until ${t}</div></div>`;
+                }
+            });
+        }
+        document.getElementById('dashOcc').innerText = occ;
+        document.getElementById('dashFree').innerText = 30 - occ;
+        document.getElementById('adminUserList').innerHTML = html || "<p style='padding:20px; text-align:center;'>No active users</p>";
+    });
 }
 
 function nextScreen(id) {
@@ -211,54 +209,9 @@ function nextScreen(id) {
     if(id === 'screen5') loadDashboard();
 }
 
-function loadDashboard() {
-    console.log("Attempting to load dashboard data...");
-    const listDiv = document.getElementById('adminUserList');
-    
-    // 1. Point to the 'seats' folder in your database
-    database.ref('seats').on('value', (snapshot) => {
-        const data = snapshot.val();
-        const now = Date.now();
-        let occupiedCount = 0;
-        let html = "";
-
-        console.log("Data received from Firebase:", data);
-
-        if (data) {
-            // Loop through all seats found in the database
-            Object.keys(data).forEach(id => {
-                const s = data[id];
-                
-                // Only show users who are still within their time limit
-                if (s.expiry > now) {
-                    occupiedCount++;
-                    let timeLeft = new Date(s.expiry).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                    
-                    html += `
-                        <div class="user-row">
-                            <div class="user-icon">👤</div>
-                            <div style="flex:1;">
-                                <b style="font-size:14px;">${s.userName || 'Anonymous'}</b>
-                                <br><small style="color:#888;">Seat #${id.replace('seat', '')}</small>
-                            </div>
-                            <div style="font-size:12px; color:var(--figma-blue); font-weight:bold;">Until ${timeLeft}</div>
-                        </div>`;
-                }
-            });
-        }
-
-        // Update the big numbers at the top
-        document.getElementById('dashOccupied').innerText = occupiedCount;
-        document.getElementById('dashFree').innerText = 30 - occupiedCount;
-
-        // Update the list or show "Empty" message
-        if (html === "") {
-            listDiv.innerHTML = "<p style='padding:30px; text-align:center; color:#999;'>No active users right now.<br><small>Try booking a seat first!</small></p>";
-        } else {
-            listDiv.innerHTML = html;
-        }
-    }, (error) => {
-        console.error("Firebase Read Error:", error);
-        listDiv.innerHTML = "<p style='color:red; padding:20px;'>Permission Denied. Check Firebase Rules!</p>";
-    });
-}
+function setMins(m) { totalSecs = m * 60; document.getElementById('durationDisp').innerText = m; }
+function addMins(m) { totalSecs += (m * 60); document.getElementById('durationDisp').innerText = totalSecs/60; }
+function goHome() { window.location.href = 'index.html'; }
+</script>
+</body>
+</html>
