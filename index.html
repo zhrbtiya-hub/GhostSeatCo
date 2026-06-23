@@ -6,8 +6,6 @@
     <title>Ghost Seat Co. | Escape the Seat Hunt</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <!-- QR Library -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
 
@@ -21,10 +19,21 @@
         </div>
     </nav>
 
-    <!-- Header / Benefits -->
+    <header id="home" class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>Escape the <br>Seat Hunt</h1>
+                <p class="tagline">No More ‘Ghost Spots’</p>
+                <button class="pill-btn-outline">Welcome!</button>
+            </div>
+        </div>
+    </header>
+
     <section id="benefits" class="benefits">
         <div class="benefit-container">
-            <div class="benefit-image"><img src="clock-graphic.png" alt="Clock"></div>
+            <div class="benefit-image">
+                <img src="clock-graphic.png" alt="Speed Clock">
+            </div>
             <div class="benefit-text">
                 <h2 class="blue-underline">Key Benefits</h2>
                 <ul>
@@ -38,28 +47,70 @@
         </div>
     </section>
 
-    <!-- Social Proof -->
+    <!-- VIDEO SECTION REMOVED -->
+
     <section id="about" class="social-proof">
         <div class="proof-container">
-            <div class="proof-image"><img src="social-icons.png" alt="Icons"></div>
+            <div class="proof-image">
+                <img src="social-icons.png" alt="People Icons">
+            </div>
             <div class="proof-text">
                 <h2 class="blue-underline">Social Proof</h2>
-                <p><strong>200+ students tested this system</strong></p>
-                <p><strong>90% said it saved their <span class="blue-highlight">time.</span></strong></p>
+                <p class="stat"><strong>200+ students tested this system</strong></p>
+                <p class="stat"><strong>90% said it saved their <span class="blue-highlight">time.</span></strong></p>
+                <p class="comparison">That's more impressive than traditional booking methods that take up 2-3 days!</p>
                 <p class="quote">“Never waste time searching for seats again.”</p>
             </div>
         </div>
     </section>
 
-    <!-- Action Section -->
-    <section class="smart-solutions">
-        <h3>Smart campuses need <br><span class="blue-highlight">smart</span> solutions.</h3>
-        <img src="app-mockup.png" alt="App Mockup" class="app-img">
-        <p class="fairness-text">Ghost Seat brings fairness and efficiency to <u>every student.</u></p>
-        <button id="startAppBtn" class="pill-btn-filled">Scan. Book. Sit. Now.</button>
-    </section>
+   <!-- 5. SMART SOLUTIONS SECTION -->
+<section class="smart-solutions">
+    <h3>Smart campuses need <br><span class="blue-highlight">smart</span> solutions.</h3>
+    <img src="app-mockup.png" alt="App Mockup" class="app-img">
+    <p class="fairness-text">Ghost Seat brings fairness and efficiency to <u>every student.</u></p>
+    
+    <!-- THE TRIGGER BUTTON -->
+    <button id="startAppBtn" class="pill-btn-filled">Scan. Book. Sit. Now.</button>
+</section>
 
-    <!-- YOUR TEAM FOOTER (STAYING THE SAME) -->
+<!-- THE INTERACTIVE APP MODAL -->
+<div id="appModal" class="modal">
+    <div class="app-frame">
+        <span class="close-app">&times;</span>
+        
+        <!-- SCREEN 1: THE SCANNER -->
+        <div id="screen-scanner" class="app-screen">
+            <h2>Scanning...</h2>
+            <div id="qr-reader"></div>
+            <p>Point at the seat's QR code</p>
+            <button class="btn-demo" onclick="showScreen('screen-map')">Simulate Success Scan</button>
+        </div>
+
+        <!-- SCREEN 2: THE SEAT MAP -->
+        <div id="screen-map" class="app-screen" style="display:none;">
+            <h2>Library Level 2</h2>
+            <div class="seat-grid" id="seatGrid"></div>
+            <div class="legend">
+                <span class="dot available"></span> Available 
+                <span class="dot occupied"></span> Occupied
+            </div>
+            <button id="bookBtn" class="btn-confirm" disabled onclick="showScreen('screen-timer')">Confirm Selection</button>
+        </div>
+
+        <!-- SCREEN 3: THE TIMER -->
+        <div id="screen-timer" class="app-screen" style="display:none;">
+            <div class="success-icon">✅</div>
+            <h2>Seat #<span id="finalSeat"></span> Booked!</h2>
+            <div class="timer-circle">
+                <h1 id="countdown">15:00</h1>
+                <p>Mins Remaining</p>
+            </div>
+            <button class="btn-cancel" onclick="closeApp()">End Session</button>
+        </div>
+    </div>
+</div>
+
     <footer class="footer">
         <div class="footer-content">
             <h3>The Ghost Seat Co. Team:</h3>
@@ -72,40 +123,6 @@
             <p>Batrisyia (Slide Designer)</p>
         </div>
     </footer>
-
-    <!-- INTERACTIVE APP POPUP -->
-    <div id="appModal" class="modal">
-        <div class="app-frame">
-            <span class="close-app">&times;</span>
-            
-            <div id="screen-scanner" class="app-screen">
-                <h2>Scanning...</h2>
-                <div id="qr-reader"></div>
-                <p>Point at the seat QR code</p>
-                <button class="btn-demo" onclick="simulateScan()">Demo: Skip Scan</button>
-            </div>
-
-            <div id="screen-map" class="app-screen" style="display:none;">
-                <h2>Select Your Seat</h2>
-                <div class="seat-grid" id="seatGrid"></div>
-                <div class="legend">
-                    <span class="dot available"></span> Available 
-                    <span class="dot occupied"></span> Occupied
-                </div>
-                <button id="bookBtn" class="btn-confirm" disabled onclick="showScreen('screen-timer')">Confirm Selection</button>
-            </div>
-
-            <div id="screen-timer" class="app-screen" style="display:none;">
-                <div class="success-icon">✅</div>
-                <h2>Seat #<span id="finalSeat"></span> Booked!</h2>
-                <div class="timer-circle">
-                    <h1 id="countdown">15:00</h1>
-                    <p>Remaining</p>
-                </div>
-                <button class="btn-cancel" onclick="closeApp()">End Session</button>
-            </div>
-        </div>
-    </div>
 
     <script src="script.js"></script>
 </body>
