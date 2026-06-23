@@ -72,10 +72,17 @@
         <div class="screen-header">SUCCESS</div>
         <div style="font-size: 60px; color: var(--figma-green);">✔️</div>
         <h2>Seat <span id="successSeatID"></span> Reserved!</h2>
+        
         <div class="timer-box">
+            <p>🕒 TIME REMAINING</p>
             <h1 id="timerClock" style="font-size: 40px;">00:15:00</h1>
         </div>
-        <button class="btn-long" onclick="goHome()">Back to Home</button>
+
+        <!-- This button stays on the screen while the timer runs -->
+        <button class="btn-long" onclick="goHome()">Minimize App</button>
+        
+        <!-- NEW: Finish Session Button -->
+        <button class="btn-long" style="background:#555; margin-top:-10px;" onclick="finishSession()">Finish the session</button>
     </div>
 
     <!-- SCREEN 4: REPORT -->
@@ -104,6 +111,8 @@
 </div>
 
 <script>
+let totalSecs = 900; 
+let countdownInterval; // Make sure this is outside any function
 // 1. FIREBASE CONFIG (Make sure your keys are here!)
 const firebaseConfig = {
   apiKey: "AIzaSyBo-83st_6iUSVt72cPyrG29ChnfNZr53k",
@@ -120,8 +129,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 const urlParams = new URLSearchParams(window.location.search);
-const seatNum = urlParams.get('seat') || "01"; 
-let totalSecs = 900; 
+const seatNum = urlParams.get('seat') || "01";  
 
 // 2. SERVICE WORKER & PERMISSION SETUP
 window.onload = function() {
@@ -208,4 +216,24 @@ function nextScreen(id) {
 function setMins(m) { totalSecs = m * 60; document.getElementById('durationDisp').innerText = m; }
 function addMins(m) { totalSecs += (m * 60); document.getElementById('durationDisp').innerText = totalSecs/60; }
 function goHome() { window.location.href = 'index.html'; }
+
+function finishSession() {
+    // 1. Confirm with user
+    if (confirm("Are you sure you want to end your session early? This will make the seat available for others.")) {
+        
+        // 2. Remove data from Firebase immediately
+        db.ref('seats/' + seatNum).remove().then(() => {
+            console.log("Seat #" + seatNum + " is now free.");
+            
+            // 3. Stop the local timer
+            clearInterval(countdownInterval);
+            
+            // 4. Redirect home
+            window.location.href = 'index.html';
+        }).catch(error => {
+            console.error("Error clearing seat:", error);
+            window.location.href = 'index.html';
+        });
+    }
+}
 </script>
