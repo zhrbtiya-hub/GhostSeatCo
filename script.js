@@ -11,16 +11,21 @@ function startScanner() {
     const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
     html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
-        // When a code is scanned:
-        document.getElementById("result").innerText = "Scan successful!";
-        alert("QR Content: " + decodedText);
-        stopScanner();
+        // --- SPEED & REDIRECT FIX ---
+        // Instead of a slow alert, we go straight to the app page
+        document.getElementById("scanResult").innerText = "Seat Detected: " + decodedText;
+        
+        setTimeout(() => {
+            stopScanner();
+            // This sends the user to app.html with the correct seat ID
+            window.location.href = "app.html?seat=" + decodedText;
+        }, 300); // Very fast 0.3 second delay
     });
 }
 
 // Function to stop the scanner
 function stopScanner() {
-    if (html5QrCode) {
+    if (html5QrCode && html5QrCode.isScanning) {
         html5QrCode.stop().then(() => {
             modal.style.display = "none";
         }).catch(err => console.log(err));
