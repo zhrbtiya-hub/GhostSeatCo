@@ -5,19 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ghost Seat Co. | Escape the Seat Hunt</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Clean, bold font similar to your design -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <!-- The QR Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
 
-    <!-- 1. NAVIGATION BAR -->
     <nav class="navbar">
         <div class="nav-container">
             <img src="logo.png" alt="Logo" class="logo">
             <div class="nav-links">
-                <a href="#how-it-works" class="btn-grey">How It Works</a>
                 <a href="#benefits" class="btn-grey">Benefits</a>
                 <a href="#about" class="btn-grey">About</a>
                 <button class="btn-blue open-scan">Check Seats Now</button>
@@ -25,7 +21,16 @@
         </div>
     </nav>
 
-    <!-- 3. KEY BENEFITS SECTION -->
+    <header id="home" class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>Escape the <br>Seat Hunt</h1>
+                <p class="tagline">No More ‘Ghost Spots’</p>
+                <button class="pill-btn-outline">View our services</button>
+            </div>
+        </div>
+    </header>
+
     <section id="benefits" class="benefits">
         <div class="benefit-container">
             <div class="benefit-image">
@@ -44,17 +49,8 @@
         </div>
     </section>
 
-    <!-- 4. HOW IT WORKS SECTION -->
-    <section id="how-it-works" class="how-it-works">
-        <h2>How It Works</h2>
-        <img src="infographic.png" alt="Steps 1-4" class="full-width-img">
-        <p class="video-label">or watch this explanation video</p>
-        <div class="video-box">
-            <span>Video to be uploaded.</span>
-        </div>
-    </section>
+    <!-- VIDEO SECTION REMOVED -->
 
-    <!-- 5. SOCIAL PROOF SECTION -->
     <section id="about" class="social-proof">
         <div class="proof-container">
             <div class="proof-image">
@@ -64,35 +60,32 @@
                 <h2 class="blue-underline">Social Proof</h2>
                 <p class="stat"><strong>200+ students tested this system</strong></p>
                 <p class="stat"><strong>90% said it saved their <span class="blue-highlight">time.</span></strong></p>
-                <p class="comparison">That more impressive than traditional booking methods that take up 2-3 days!</p>
+                <p class="comparison">That's more impressive than traditional booking methods that take up 2-3 days!</p>
                 <p class="quote">“Never waste time searching for seats again.”</p>
             </div>
         </div>
     </section>
 
-    <!-- 6. SMART SOLUTIONS SECTION -->
     <section class="smart-solutions">
         <h3>Smart campuses need <br><span class="blue-highlight">smart</span> solutions.</h3>
         <img src="app-mockup.png" alt="App Mockup" class="app-img">
         <p class="fairness-text">Ghost Seat brings fairness and efficiency to <u>every student.</u></p>
-        <!-- WORKING SCAN BUTTON -->
         <button class="pill-btn-filled open-scan">Scan. Book. Sit. Now.</button>
     </section>
 
-    <!-- 7. TEAM FOOTER -->
     <footer class="footer">
         <div class="footer-content">
             <h3>The Ghost Seat Co. Team:</h3>
             <p>Hanif (Supervisor)</p>
-            <p>Ain (Leader & Logo Design)</p>
-            <p>Shafiqah (Website Design)</p>
+            <p>Ain (Leader & Logo Designer)</p>
+            <p>Shafiqah (Website Designer)</p>
             <p>Zahra (Website Developer)</p>
-            <p>Gayathiri (Researcher/Informative)</p>
+            <p>Gayathiri (Researcher & Assistant Developer)</p>
             <p>Hana (Slide Designer)</p>
+            <p>Batrisyia (Slide Designer)</p>
         </div>
     </footer>
 
-    <!-- QR SCANNER POPUP (Hidden until clicked) -->
     <div id="scannerModal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>

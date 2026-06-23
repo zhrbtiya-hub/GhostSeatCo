@@ -66,63 +66,49 @@ ul li::before { content: "• "; color: #000; }
 #reader { width: 100%; margin-top: 20px; }
 
 /* --- MOBILE RESPONSIVE FIXES --- */
+/* This code only runs when the screen is smaller than 768px (Phones/Tablets) */
 @media (max-width: 768px) {
     
-    /* 1. Reset Padding for small screens */
-    section, header, .hero, .benefits, .social-proof, .how-it-works, .smart-solutions {
+    /* 1. Reset Padding so sections aren't too wide */
+    section, .benefits, .social-proof, .how-it-works, .smart-solutions {
         padding: 40px 5%;
         text-align: center;
     }
 
-<<<<<<< HEAD
-    /* 2. Fix Hero Sacing for Mobile */
-    .hero-content {
-        gap: 20px; /* Reduces the gap since the image is gone */
-=======
-    /* 2. Stack Hero Section (Text on top, Image below) */
-    .hero-content {
-        flex-direction: column;
-        gap: 30px;
->>>>>>> 8fd1d957670093858de4a9fd2d29143893b5eb2e
-    }
-
-    h1 {
-        font-size: 36px; /* Shrink big titles so they fit */
-    }
-
-    .hero-image img {
-        width: 80%; /* Make image fit the phone screen */
-        max-width: 250px;
-    }
-
-    /* 3. Stack Benefits and Social Proof */
+    /* 2. Stack the Benefits and Social Proof (Image on top, Text below) */
     .benefit-container, .proof-container {
-        flex-direction: column; /* Stack image and text */
-        gap: 20px;
+        flex-direction: column; /* This stacks them vertically */
+        gap: 30px;
     }
 
-    /* Move images to the top of the text in stacks */
+    /* This moves the image to the top of the stack */
     .benefit-image, .proof-image {
         order: -1; 
     }
 
     .benefit-image img, .proof-image img {
-        width: 150px;
+        width: 150px; /* Make icons smaller on phone */
     }
 
+    /* 3. Make Titles fit the phone screen */
     .blue-underline {
-        font-size: 28px;
+        font-size: 32px;
+        line-height: 1.2;
     }
 
     ul {
         font-size: 16px;
         text-align: left;
-        display: inline-block; /* Centers the list */
+        display: inline-block; /* Centers the list block */
     }
 
     /* 4. Fix Navigation Bar for Mobile */
     .navbar {
         padding: 10px 3%;
+    }
+
+    .logo {
+        height: 50px; /* Smaller logo for mobile */
     }
 
     .nav-links {
@@ -136,18 +122,18 @@ ul li::before { content: "• "; color: #000; }
     }
 
     /* 5. Fix How It Works Infographic */
+    .how-it-works h2 {
+        font-size: 32px;
+    }
+
     .full-width-img {
         width: 100%;
+        max-width: 100%;
     }
 
-    .video-box {
-        width: 100%;
-        height: 180px;
-    }
-
-    /* 6. Fix Smart Solutions (Bottom) */
+    /* 6. Fix Smart Solutions Section (Bottom) */
     .smart-solutions h3 {
-        font-size: 28px;
+        font-size: 26px;
     }
 
     .app-img {
@@ -155,16 +141,14 @@ ul li::before { content: "• "; color: #000; }
     }
 
     .pill-btn-filled {
-        width: 100%; /* Make button easy to tap with thumb */
+        width: 100%; /* Make button full width for easy tapping */
         font-size: 16px;
+        padding: 15px;
     }
 
-    /* 7. Footer text */
+    /* 7. Center Footer text */
     .footer {
+        padding: 40px 5%;
         text-align: center;
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 8fd1d957670093858de4a9fd2d29143893b5eb2e
