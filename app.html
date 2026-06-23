@@ -26,6 +26,7 @@
         }
 
         .notch { width: 150px; height: 25px; background: #333; margin: 0 auto; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; cursor: pointer; }
+        
 
         .screen { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; text-align: center; width: 100%; }
         .active { display: flex !important; }
@@ -54,6 +55,41 @@
         .btn-long { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--figma-blue); color: white; font-weight: bold; font-size: 16px; margin-top: auto; margin-bottom: 30px; cursor: pointer; }
         input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ccc; margin: 10px 0; font-size: 16px; }
         .timer-box { margin: 20px 0; background: #f8f9fa; padding: 25px; border-radius: 20px; width: 100%; border: 2px solid var(--figma-green); }
+    
+        /* DASHBOARD UI STYLES */
+.dash-card {
+    background: #fff;
+    padding: 15px;
+    border-radius: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.user-list-container {
+    background: #fff;
+    border-radius: 15px;
+    padding: 5px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.user-row {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.user-icon {
+    width: 35px; height: 35px;
+    background: #eee;
+    border-radius: 50%;
+    margin-right: 12px;
+    display: flex; align-items: center; justify-content: center;
+}
     </style>
 </head>
 <body>
@@ -129,12 +165,41 @@
     </div>
 
     <!-- ADMIN -->
+    <!-- SCREEN 5: ADMIN DASHBOARD (Pasted exactly here) -->
     <div id="screen5" class="screen">
-        <div class="screen-header">ADMIN</div>
-        <div id="historyList" style="width:100%; text-align:left;"></div>
-        <button class="btn-long" onclick="nextScreen('screen0')">Restart</button>
+        <div class="screen-header" style="display:flex; justify-content:space-between; align-items:center; width:100%; padding: 0 10px;">
+            <span style="font-size:24px;">☰</span>
+            <span style="font-weight:700;">ADMIN DASHBOARD</span>
+            <span style="font-size:20px;">🔔</span>
+        </div>
+
+        <div style="width:100%; padding:15px; text-align:left;">
+            <p style="font-weight:bold; color:#444; margin-bottom:15px;">Dashboard Overview</p>
+            
+            <div class="dash-card" style="border-left: 5px solid #ff4757; margin-bottom:15px;">
+                <div>
+                    <p style="font-size:12px; color:#666;">Occupied Seats</p>
+                    <h2 id="dashOccupied" style="font-size:28px;">0</h2>
+                </div>
+                <div style="background:#FFE4E6; padding:10px; border-radius:12px;">👥</div>
+            </div>
+
+            <div class="dash-card" style="border-left: 5px solid #2ecc71; margin-bottom:20px;">
+                <div>
+                    <p style="font-size:12px; color:#666;">Free Seats</p>
+                    <h2 id="dashFree" style="font-size:28px;">30</h2>
+                </div>
+                <div style="background:#D1FAE5; padding:10px; border-radius:12px;">🪑</div>
+            </div>
+
+            <p style="font-weight:bold; color:#444; margin-bottom:10px;">Current Users</p>
+            <div id="adminUserList" class="user-list-container">
+                <!-- User list will appear here automatically -->
+            </div>
+
+            <button class="btn-long" style="background:#555; margin-top:20px;" onclick="nextScreen('screen0')">Exit Admin Mode</button>
+        </div>
     </div>
-</div>
 
 <script>
 const firebaseConfig = {
@@ -244,6 +309,62 @@ function nextScreen(id) {
     document.getElementById(id).classList.add('active');
 }
 function goHome() { window.location.href = 'index.html'; }
+
+// 1. THE SECRET NOTCH LOGIC
+// Put this ID on your notch div: <div class="notch" id="adminSecret"></div>
+document.querySelector('.notch').onclick = function() {
+    // Click the notch 3 times to open admin
+    this.clicks = (this.clicks || 0) + 1;
+    if (this.clicks === 3) {
+        nextScreen('screen5');
+        this.clicks = 0;
+    }
+    setTimeout(() => { this.clicks = 0; }, 2000);
+};
+
+// 2. THE DASHBOARD DATA LOGIC
+function loadLiveDashboard() {
+    const totalSeats = 30; // Total seats in your library
+    const listDiv = document.getElementById('adminUserList');
+    
+    // Listen to real-time changes in Firebase
+    database.ref('seats').on('value', (snapshot) => {
+        const data = snapshot.val();
+        const now = Date.now();
+        let occupied = 0;
+        let html = "";
+
+        if (data) {
+            Object.keys(data).forEach(id => {
+                const seat = data[id];
+                if (seat.expiry > now) {
+                    occupied++;
+                    let time = new Date(seat.expiry).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    html += `
+                        <div class="user-row">
+                            <div class="user-icon">👤</div>
+                            <div style="flex:1;"><b>${seat.userName}</b></div>
+                            <div style="font-size:12px; color:#666;">Until ${time}</div>
+                        </div>`;
+                }
+            });
+        }
+        document.getElementById('dashOccupied').innerText = occupied;
+        document.getElementById('dashFree').innerText = totalSeats - occupied;
+        listDiv.innerHTML = html || '<p style="padding:20px; text-align:center; color:#999;">No active users</p>';
+    });
+}
+
+// 3. TRIGGER DASHBOARD ON SCREEN CHANGE
+// Update your existing nextScreen function to include this 'if' statement:
+function nextScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    
+    if(id === 'screen5') {
+        loadLiveDashboard();
+    }
+}
 </script>
 
 </body>
