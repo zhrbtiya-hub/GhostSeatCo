@@ -212,29 +212,53 @@ function nextScreen(id) {
 }
 
 function loadDashboard() {
+    console.log("Attempting to load dashboard data...");
+    const listDiv = document.getElementById('adminUserList');
+    
+    // 1. Point to the 'seats' folder in your database
     database.ref('seats').on('value', (snapshot) => {
         const data = snapshot.val();
         const now = Date.now();
-        let occ = 0;
+        let occupiedCount = 0;
         let html = "";
+
+        console.log("Data received from Firebase:", data);
+
         if (data) {
+            // Loop through all seats found in the database
             Object.keys(data).forEach(id => {
                 const s = data[id];
+                
+                // Only show users who are still within their time limit
                 if (s.expiry > now) {
-                    occ++;
-                    let t = new Date(s.expiry).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                    html += `<div class="user-row"><div class="user-icon">👤</div><div style="flex:1;"><b>${s.userName}</b></div><div style="font-size:12px;">Until ${t}</div></div>`;
+                    occupiedCount++;
+                    let timeLeft = new Date(s.expiry).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                    
+                    html += `
+                        <div class="user-row">
+                            <div class="user-icon">👤</div>
+                            <div style="flex:1;">
+                                <b style="font-size:14px;">${s.userName || 'Anonymous'}</b>
+                                <br><small style="color:#888;">Seat #${id.replace('seat', '')}</small>
+                            </div>
+                            <div style="font-size:12px; color:var(--figma-blue); font-weight:bold;">Until ${timeLeft}</div>
+                        </div>`;
                 }
             });
         }
-        document.getElementById('dashOccupied').innerText = occ;
-        document.getElementById('dashFree').innerText = 30 - occ;
-        document.getElementById('adminUserList').innerHTML = html || "<p style='padding:20px; text-align:center;'>Empty</p>";
+
+        // Update the big numbers at the top
+        document.getElementById('dashOccupied').innerText = occupiedCount;
+        document.getElementById('dashFree').innerText = 30 - occupiedCount;
+
+        // Update the list or show "Empty" message
+        if (html === "") {
+            listDiv.innerHTML = "<p style='padding:30px; text-align:center; color:#999;'>No active users right now.<br><small>Try booking a seat first!</small></p>";
+        } else {
+            listDiv.innerHTML = html;
+        }
+    }, (error) => {
+        console.error("Firebase Read Error:", error);
+        listDiv.innerHTML = "<p style='color:red; padding:20px;'>Permission Denied. Check Firebase Rules!</p>";
     });
 }
-
-function goHome() { window.location.href = 'index.html'; }
-</script>
-
-</body>
-</html>
