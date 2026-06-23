@@ -3,73 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghost Seat App</title>
-    <!-- FIXED: Added missing > below -->
+    <title>Ghost Seat Real-Time App</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- 1. Firebase "Brain" Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
     <style>
         :root {
-            --figma-green: #2ecc71;
-            --figma-red: #ff4757;
-            --figma-blue: #1e67fb;
-            --ghost-blue: #9AD8F5;
-            --light-blue: #e1f0ff;
+            --figma-green: #2ecc71; --figma-red: #ff4757; --figma-blue: #1e67fb;
+            --ghost-blue: #9AD8F5; --light-blue: #e1f0ff;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #111; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #000; }
-
-        .phone-container {
-            width: 375px; height: 750px; background: white; border-radius: 40px;
-            position: relative; overflow: hidden; border: 8px solid #333;
-            display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
-        .notch {
-            width: 150px; height: 25px; background: #333; margin: 0 auto;
-            border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;
-            cursor: pointer; z-index: 10;
-        }
-
-        /* FIXED: Screen Switcher Logic */
-        .screen {
-            flex: 1; 
-            display: none; /* Hidden by default */
-            flex-direction: column; 
-            align-items: center;
-            padding: 20px; 
-            text-align: center; 
-        }
-
-        .screen.active {
-            display: flex !important; /* Shows when active */
-            animation: fadeIn 0.4s ease-in;
-        }
-
+        .phone-container { width: 375px; height: 750px; background: white; border-radius: 40px; position: relative; overflow: hidden; border: 8px solid #333; display: flex; flex-direction: column; }
+        .notch { width: 150px; height: 25px; background: #333; margin: 0 auto; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; cursor: pointer; }
+        .screen { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; text-align: center; }
+        .active { display: flex !important; animation: fadeIn 0.4s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* FIXED: Added Radar Pulse Animation */
-        .radar {
-            width: 120px; height: 120px; border: 4px solid var(--ghost-blue);
-            border-radius: 50%; margin: 40px auto; position: relative;
-            animation: pulse 0.8s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(0.8); opacity: 0.5; }
-            100% { transform: scale(1.1); opacity: 0; }
-        }
-
-        .screen-header { padding: 15px 0; font-weight: 600; font-size: 16px; color: #000; text-transform: uppercase; letter-spacing: 1px; }
-        h2 { font-weight: 800; font-size: 24px; margin: 20px 0; }
-        
-        .smiley-box { width: 140px; height: 140px; background: var(--light-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 80px; margin: 20px 0; }
-        .time-display-box { background: #f8f9fa; width: 100%; padding: 20px; border-radius: 15px; border: 2px dashed var(--figma-blue); margin-bottom: 15px; }
-        #durationDisplay { font-size: 22px; font-weight: 900; color: var(--figma-blue); }
-        .chip-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px; }
-        .chip { padding: 8px 12px; background: #eee; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .btn-add { width: 100%; padding: 10px; background: white; border: 2px solid var(--figma-blue); color: var(--figma-blue); border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
-        .btn-group { display: flex; gap: 15px; width: 100%; margin-top: auto; padding-bottom: 30px; }
+        .radar { width: 120px; height: 120px; border: 4px solid var(--ghost-blue); border-radius: 50%; margin: 40px auto; animation: pulse 0.8s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.1); opacity: 0; } }
         .btn-sq { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 16px; }
-        .btn-long { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--figma-blue); color: white; font-weight: bold; font-size: 16px; margin-top: auto; margin-bottom: 30px; cursor: pointer; }
+        .btn-long { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--figma-blue); color: white; font-weight: bold; cursor: pointer; margin-top: auto; margin-bottom: 30px; }
+        input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ccc; margin: 10px 0; font-size: 16px; }
+        .timer-box { margin: 20px 0; background: #f8f9fa; padding: 25px; border-radius: 20px; width: 100%; border: 2px solid var(--figma-green); }
     </style>
 </head>
 <body>
@@ -79,141 +37,172 @@
 
     <!-- SCREEN 0: SENSING -->
     <div id="screen0" class="screen active">
-        <div class="screen-header">SENSING...</div>
-        <!-- FIXED: Using the Radar class here -->
+        <h2 style="margin-top: 40px;">Ghost Sensor v1.0</h2>
         <div class="radar"></div>
-        <h2 style="margin-top: 20px;">Ghost Sensor v1.0</h2>
-        <p style="color: #666;">Analyzing Seat <span id="currentSeatID" style="font-weight:bold;">...</span></p>
+        <p>Analyzing Seat <span id="currentSeatID">...</span></p>
     </div>
 
-    <!-- SCREEN 1: STATUS SCREEN -->
+    <!-- SCREEN 1: STATUS -->
     <div id="screen1" class="screen">
-        <div class="screen-header">STATUS SCREEN</div>
-        <h2 id="statusTitle">Analyzing...</h2>
-        <div id="statusIcon" style="font-size: 100px; margin: 30px 0;">💺</div>
-        <p id="statusMsg" style="font-weight: 500; font-size: 18px; color: #444;"></p>
-        <div class="btn-group" id="actionButtons"></div>
+        <h2 id="statusTitle">...</h2>
+        <div id="statusIcon" style="font-size: 80px; margin: 20px 0;">💺</div>
+        <p id="statusMsg" style="font-weight: 500; margin-bottom: 30px; padding: 0 10px;"></p>
+        <div id="actionButtons" style="display:flex; gap:15px; width:100%;"></div>
     </div>
 
-    <!-- SCREEN 2: BOOKING FORM -->
+    <!-- SCREEN 2: FORM -->
     <div id="screen2" class="screen">
-        <div class="screen-header">BOOKING FORM</div>
-        <h2 style="margin-top:10px;">Reserve Seat</h2>
+        <h2>Reserve Seat</h2>
         <div style="text-align: left; width: 100%;">
-            <label style="font-weight:bold;">Name</label>
-            <input type="text" id="userName" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ccc; margin: 5px 0 15px 0;" placeholder="Enter your name">
-            
-            <label style="font-weight:bold;">How long?</label>
-            <div class="time-display-box" style="text-align:center;">
-                <span id="durationDisplay">15 minutes</span>
-            </div>
-            <div class="chip-group">
-                <div class="chip" onclick="setDuration(15)">15m</div>
-                <div class="chip" onclick="setDuration(30)">30m</div>
-                <div class="chip" onclick="setDuration(45)">45m</div>
-                <div class="chip" onclick="setDuration(60)">1h</div>
-            </div>
-            <button class="btn-add" onclick="addTime(15)">+ Add 15 Minutes</button>
+            <label><b>Your Name</b></label>
+            <input type="text" id="nameInput" placeholder="Type your name">
+            <p style="margin-top: 10px;"><b>Duration:</b> 15 Minutes</p>
         </div>
-        <button class="btn-long" onclick="confirmBooking()">Reserve</button>
+        <button class="btn-long" onclick="confirmBooking()">Confirm Reservation</button>
     </div>
 
-    <!-- SCREEN 3: SUCCESS SCREEN -->
+    <!-- SCREEN 3: SUCCESS -->
     <div id="screen3" class="screen">
-        <div class="screen-header">SUCCESS SCREEN</div>
-        <div style="font-size: 80px; color: var(--figma-green); margin: 20px 0;">✔️</div>
-        <h2>Seat <span id="successSeatID">...</span> Reserved!</h2>
-        <div style="margin: 30px 0; background: #f8f9fa; padding: 25px; border-radius: 20px; width: 100%; border: 2px solid var(--figma-green);">
-            <p style="font-weight: bold; color: #666; margin-bottom: 10px;">🕒 TIME REMAINING</p>
-            <h1 id="timerClock" style="font-size: 48px; font-weight: 900; letter-spacing: 2px; color: #333;">00:15:00</h1>
+        <div style="font-size: 60px; color: var(--figma-green);">✔️</div>
+        <h2>Seat Reserved!</h2>
+        <div class="timer-box">
+            <p>🕒 TIME REMAINING</p>
+            <h1 id="timerClock">00:15:00</h1>
         </div>
         <button class="btn-long" onclick="goHome()">Done</button>
     </div>
 
-    <!-- SCREEN 4: REPORT SENT -->
+    <!-- SCREEN 4: REPORT -->
     <div id="screen4" class="screen">
-        <div class="screen-header">REPORT SENT</div>
-        <div class="smiley-box">😊</div>
-        <h2>Thanks for letting<br>us know!</h2>
-        <p>Have a great day! 🙂</p>
+        <h2>Report Sent!</h2>
+        <div style="font-size:80px; margin:40px;">📩</div>
+        <p>Supervisor has been notified.</p>
         <button class="btn-long" onclick="goHome()">Done</button>
     </div>
 
-    <!-- SCREEN 5: ADMIN -->
+    <!-- SCREEN 5: ADMIN HISTORY -->
     <div id="screen5" class="screen">
-        <div class="screen-header">ADMIN DASHBOARD</div>
-        <button class="btn-long" onclick="nextScreen('screen0')">Restart App</button>
+        <h2>Admin Log</h2>
+        <div id="adminList" style="width:100%; text-align:left; margin-top:20px;"></div>
+        <button class="btn-long" onclick="nextScreen('screen0')">Restart</button>
     </div>
 </div>
 
 <script>
-    let totalSeconds = 900; 
-    let countdownInterval;
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const seatNumber = urlParams.get('seat') || "L2-04"; 
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBo-83st_6iUSVt72cPyrG29ChnfNZr53k",
+  authDomain: "ghostseat.firebaseapp.com",
+  databaseURL: "https://ghostseat-default-rtdb.firebaseio.com",
+  projectId: "ghostseat",
+  storageBucket: "ghostseat.firebasestorage.app",
+  messagingSenderId: "609525103633",
+  appId: "1:609525103633:web:8f542a1fcb9a2582eb05b0",
+  measurementId: "G-LVTK159XYG"
+};
 
-    window.onload = function() {
-        document.getElementById('currentSeatID').innerText = "#" + seatNumber;
-        document.getElementById('successSeatID').innerText = "#" + seatNumber;
-        setTimeout(runSensor, 1500); 
-    };
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
-    function runSensor() {
-        const isSeatEmpty = Math.random() > 0.5;
+// Get Seat from URL (e.g., app.html?seat=01)
+const urlParams = new URLSearchParams(window.location.search);
+const seatNumber = urlParams.get('seat') || "01"; 
+let totalSeconds = 900; 
+
+window.onload = function() {
+    document.getElementById('currentSeatID').innerText = "#" + seatNumber;
+    // Faster sensing (1.2 seconds)
+    setTimeout(checkSeatRealtime, 1200); 
+};
+
+// --- LOGIC: CHECK IF SEAT IS TAKEN BY ANOTHER USER ---
+function checkSeatRealtime() {
+    database.ref('seats/' + seatNumber).once('value', (snapshot) => {
+        const data = snapshot.val();
+        const now = Date.now();
         const btnGroup = document.getElementById('actionButtons');
-        
-        if (isSeatEmpty) {
-            document.getElementById('statusTitle').innerText = "Seat Available!";
-            document.getElementById('statusIcon').innerText = "✅";
-            document.getElementById('statusMsg').innerText = "Wanna book?";
-            btnGroup.innerHTML = `
-                <button class="btn-sq" style="background: #2ecc71;" onclick="nextScreen('screen2')">YES</button>
-                <button class="btn-sq" style="background: #ff4757;" onclick="goHome()">NO</button>
-            `;
-        } else {
+
+        // Check if there is data and if the timer hasn't expired yet
+        if (data && data.expiry > now) {
             document.getElementById('statusTitle').innerText = "Seat Occupied!";
             document.getElementById('statusIcon').innerText = "❌";
-            document.getElementById('statusMsg').innerText = "Is someone actually there?";
+            document.getElementById('statusMsg').innerText = "Currently reserved by " + data.userName;
             btnGroup.innerHTML = `
-                <button class="btn-sq" style="background: #ff4757;" onclick="nextScreen('screen4')">REPORT GHOST</button>
-                <button class="btn-sq" style="background: #555;" onclick="goHome()">FIND NEW</button>
+                <button class="btn-sq" style="background:var(--figma-red);" onclick="nextScreen('screen4')">REPORT</button>
+                <button class="btn-sq" style="background:#555;" onclick="goHome()">FIND NEW</button>
+            `;
+        } else {
+            document.getElementById('statusTitle').innerText = "Seat Available!";
+            document.getElementById('statusIcon').innerText = "✅";
+            document.getElementById('statusMsg').innerText = "Wanna book Seat #" + seatNumber + "?";
+            btnGroup.innerHTML = `
+                <button class="btn-sq" style="background:var(--figma-green);" onclick="nextScreen('screen2')">YES</button>
+                <button class="btn-sq" style="background:var(--figma-red);" onclick="goHome()">NO</button>
             `;
         }
         nextScreen('screen1');
-    }
+    });
+}
 
-    function setDuration(mins) { totalSeconds = mins * 60; updateDisplay(); }
-    function addTime(mins) { totalSeconds += (mins * 60); updateDisplay(); }
-    function updateDisplay() {
-        let h = Math.floor(totalSeconds / 3600);
-        let m = Math.floor((totalSeconds % 3600) / 60);
-        document.getElementById('durationDisplay').innerText = (h > 0 ? h + "h " : "") + m + " minutes";
-    }
+// --- LOGIC: SAVE THE USER'S NAME TO THE CLOUD ---
+function confirmBooking() {
+    const name = document.getElementById('nameInput').value || "Student";
+    const expiry = Date.now() + (totalSeconds * 1000);
 
-    function confirmBooking() { nextScreen('screen3'); startCountdown(); }
+    // Save to Realtime Database
+    database.ref('seats/' + seatNumber).set({
+        userName: name,
+        expiry: expiry
+    });
 
-    function startCountdown() {
-        clearInterval(countdownInterval);
-        countdownInterval = setInterval(() => {
-            if (totalSeconds <= 0) { clearInterval(countdownInterval); return; }
-            totalSeconds--;
-            let h = Math.floor(totalSeconds / 3600);
-            let m = Math.floor((totalSeconds % 3600) / 60);
-            let s = totalSeconds % 60;
-            document.getElementById('timerClock').innerText = 
-                (h < 10 ? "0"+h : h) + ":" + (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
-        }, 1000);
-    }
+    // Save to History Log for Admin
+    database.ref('history').push({
+        name: name,
+        seat: seatNumber,
+        time: new Date().toLocaleTimeString()
+    });
 
-    function nextScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        const target = document.getElementById(id);
-        if(target) target.classList.add('active');
-    }
+    nextScreen('screen3');
+    startCountdown();
+}
 
-    function goHome() { window.location.href = 'index.html'; }
+function startCountdown() {
+    const clock = document.getElementById('timerClock');
+    const interval = setInterval(() => {
+        if (totalSeconds <= 0) { clearInterval(interval); return; }
+        totalSeconds--;
+        let m = Math.floor(totalSeconds / 60);
+        let s = totalSeconds % 60;
+        clock.innerText = `00:${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+    }, 1000);
+}
+
+function nextScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if(id === 'screen5') loadHistory();
+}
+
+function loadHistory() {
+    database.ref('history').limitToLast(5).once('value', (snapshot) => {
+        let html = "";
+        snapshot.forEach(child => {
+            const h = child.val();
+            html += `<div style="padding:10px; border-bottom:1px solid #eee;"><b>${h.name}</b> used Seat ${h.seat}</div>`;
+        });
+        document.getElementById('adminList').innerHTML = html || "No history yet.";
+    });
+}
+
+function goHome() { window.location.href = 'index.html'; }
 </script>
-
 </body>
 </html>
