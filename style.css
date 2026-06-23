@@ -74,9 +74,16 @@ ul li::before { content: "• "; color: #000; }
         text-align: center;
     }
 
+<<<<<<< HEAD
     /* 2. Fix Hero Sacing for Mobile */
     .hero-content {
         gap: 20px; /* Reduces the gap since the image is gone */
+=======
+    /* 2. Stack Hero Section (Text on top, Image below) */
+    .hero-content {
+        flex-direction: column;
+        gap: 30px;
+>>>>>>> 8fd1d957670093858de4a9fd2d29143893b5eb2e
     }
 
     h1 {
@@ -156,4 +163,8 @@ ul li::before { content: "• "; color: #000; }
     .footer {
         text-align: center;
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 8fd1d957670093858de4a9fd2d29143893b5eb2e
