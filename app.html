@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghost Seat | Smart System</title>
+    <title>Ghost Seat | Smart App</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -17,16 +17,13 @@
         .screen { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; text-align: center; width: 100%; }
         .active { display: flex !important; }
         .radar { width: 100px; height: 100px; border: 4px solid var(--ghost-blue); border-radius: 50%; margin: 40px auto; animation: pulse 0.6s infinite; }
-        @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.1); opacity: 0; } }
+        @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.1); opacity: 1; } }
         .screen-header { padding: 15px 0; font-weight: 600; font-size: 16px; text-transform: uppercase; }
         h2 { font-weight: 800; font-size: 24px; margin: 20px 0; }
         .btn-sq { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; color: white; }
-        .btn-long { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--figma-blue); color: white; font-weight: bold; cursor: pointer; margin-top: auto; margin-bottom: 20px; }
+        .btn-long { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--figma-blue); color: white; font-weight: bold; cursor: pointer; margin-top: auto; margin-bottom: 10px; }
         input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 10px; font-size: 16px; }
         .timer-box { margin: 20px 0; background: #f8f9fa; padding: 25px; border-radius: 20px; width: 100%; border: 2px solid var(--figma-green); }
-        .dash-card { background: #fff; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); width: 100%; margin-bottom: 10px; }
-        .user-list { background: #f8f9fa; border-radius: 15px; width: 100%; max-height: 300px; overflow-y: auto; text-align: left; }
-        .user-row { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
         .time-chip { padding: 8px 12px; background: #eee; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; margin: 5px; }
     </style>
 </head>
@@ -61,28 +58,22 @@
         <div style="display:flex; flex-wrap:wrap; justify-content:center;">
             <div class="time-chip" onclick="setMins(15)">15m</div>
             <div class="time-chip" onclick="setMins(30)">30m</div>
-            <div class="time-chip" onclick="setMins(60)">1h</div>
             <div class="time-chip" onclick="addMins(15)" style="background:var(--ghost-blue);">+15m</div>
         </div>
         <button class="btn-long" onclick="confirmBooking()">Confirm Reservation</button>
     </div>
 
-    <!-- SCREEN 3: SUCCESS -->
+    <!-- SCREEN 3: SUCCESS (TIMER) -->
     <div id="screen3" class="screen">
         <div class="screen-header">SUCCESS</div>
         <div style="font-size: 60px; color: var(--figma-green);">✔️</div>
         <h2>Seat <span id="successSeatID"></span> Reserved!</h2>
-        
         <div class="timer-box">
-            <p>🕒 TIME REMAINING</p>
             <h1 id="timerClock" style="font-size: 40px;">00:15:00</h1>
         </div>
-
-        <!-- This button stays on the screen while the timer runs -->
         <button class="btn-long" onclick="goHome()">Minimize App</button>
-        
-        <!-- NEW: Finish Session Button -->
-        <button class="btn-long" style="background:#555; margin-top:-10px;" onclick="finishSession()">Finish the session</button>
+        <!-- NEW FINISH BUTTON -->
+        <button class="btn-long" style="background:#444;" onclick="finishSession()">Finish the session</button>
     </div>
 
     <!-- SCREEN 4: REPORT -->
@@ -93,27 +84,10 @@
         <button class="btn-long" onclick="goHome()">Done</button>
     </div>
 
-    <!-- SCREEN 5: ADMIN DASHBOARD -->
-    <div id="screen5" class="screen">
-        <div class="screen-header" style="font-weight:bold;">ADMIN DASHBOARD</div>
-        <div style="width:100%; padding:10px;">
-            <div class="dash-card" style="border-left: 5px solid var(--figma-red);">
-                <span>Occupied</span> <h2 id="dashOcc">0</h2>
-            </div>
-            <div class="dash-card" style="border-left: 5px solid var(--figma-green);">
-                <span>Free</span> <h2 id="dashFree">30</h2>
-            </div>
-            <p style="font-weight:bold; margin: 15px 0 5px 0; text-align:left;">Active Users:</p>
-            <div id="adminUserList" class="user-list"></div>
-            <button class="btn-long" style="background:#555; margin-top:20px;" onclick="nextScreen('screen0')">Exit Admin</button>
-        </div>
-    </div>
 </div>
 
 <script>
-let totalSecs = 900; 
-let countdownInterval; // Make sure this is outside any function
-// 1. FIREBASE CONFIG (Make sure your keys are here!)
+// !!! PASTE YOUR FIREBASE CONFIG HERE !!!
 const firebaseConfig = {
   apiKey: "AIzaSyBo-83st_6iUSVt72cPyrG29ChnfNZr53k",
   authDomain: "ghostseat.firebaseapp.com",
@@ -128,64 +102,17 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// GLOBAL VARIABLES
 const urlParams = new URLSearchParams(window.location.search);
-const seatNum = urlParams.get('seat') || "01";  
+const seatNum = urlParams.get('seat') || "01"; 
+let totalSecs = 900; 
+let countdownInterval = null; // Global variable to store the timer
 
-// 2. SERVICE WORKER & PERMISSION SETUP
 window.onload = function() {
     document.getElementById('currentSeatID').innerText = "#" + seatNum;
     document.getElementById('successSeatID').innerText = "#" + seatNum;
-
-    // Register Service Worker for background work
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').then(() => {
-            console.log("Service Worker Active");
-        });
-    }
-
-    // Ask for Notification Permission
-    if ("Notification" in window) {
-        Notification.requestPermission();
-    }
-
     setTimeout(checkSeat, 1000); 
 };
-
-// 3. BOOKING LOGIC
-function confirmBooking() {
-    const name = document.getElementById('nameInput').value || "Guest";
-    const expiry = Date.now() + (totalSecs * 1000);
-    
-    db.ref('seats/' + seatNum).set({ userName: name, expiry: expiry }).then(() => {
-        
-        // TELL THE BACKGROUND WORKER TO NOTIFY US IN THE FUTURE
-        if (navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({
-                type: 'SCHEDULE_NOTIFICATION',
-                delay: totalSecs * 1000,
-                seat: seatNum
-            });
-        }
-
-        nextScreen('screen3');
-        startTimer();
-    });
-}
-
-// 4. THE REST OF YOUR FUNCTIONS (Stay the same)
-function startTimer() {
-    const clock = document.getElementById('timerClock');
-    const interval = setInterval(() => {
-        if (totalSecs <= 0) { 
-            clearInterval(interval); 
-            return; 
-        }
-        totalSecs--;
-        let m = Math.floor(totalSecs / 60);
-        let s = totalSecs % 60;
-        clock.innerText = `00:${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
-    }, 1000);
-}
 
 function checkSeat() {
     db.ref('seats/' + seatNum).once('value').then(snap => {
@@ -196,17 +123,65 @@ function checkSeat() {
             document.getElementById('statusTitle').innerText = "Seat Taken!";
             document.getElementById('statusIcon').innerText = "❌";
             document.getElementById('statusMsg').innerText = "Reserved by " + data.userName;
-            btnArea.innerHTML = `<button onclick="nextScreen('screen4')" style="background:var(--figma-red); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold; cursor:pointer;">REPORT</button>
-                                 <button onclick="goHome()" style="background:#555; flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold; cursor:pointer;">FIND NEW</button>`;
+            btnArea.innerHTML = `<button onclick="nextScreen('screen4')" style="background:var(--figma-red); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold;">REPORT</button>
+                                 <button onclick="goHome()" style="background:#555; flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold;">FIND NEW</button>`;
         } else {
             document.getElementById('statusTitle').innerText = "Seat Available!";
             document.getElementById('statusIcon').innerText = "✅";
             document.getElementById('statusMsg').innerText = "Book Seat #" + seatNum + "?";
-            btnArea.innerHTML = `<button onclick="nextScreen('screen2')" style="background:var(--figma-green); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold; cursor:pointer;">YES</button>
-                                 <button onclick="goHome()" style="background:var(--figma-red); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold; cursor:pointer;">NO</button>`;
+            btnArea.innerHTML = `<button onclick="nextScreen('screen2')" style="background:var(--figma-green); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold;">YES</button>
+                                 <button onclick="goHome()" style="background:var(--figma-red); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold;">NO</button>`;
         }
         nextScreen('screen1');
     });
+}
+
+function confirmBooking() {
+    const name = document.getElementById('nameInput').value || "Guest";
+    const expiry = Date.now() + (totalSecs * 1000);
+    db.ref('seats/' + seatNum).set({ userName: name, expiry: expiry }).then(() => {
+        nextScreen('screen3');
+        startTimer();
+    });
+}
+
+function startTimer() {
+    const clock = document.getElementById('timerClock');
+    // Clear any existing timer first
+    if(countdownInterval) clearInterval(countdownInterval);
+
+    countdownInterval = setInterval(() => {
+        if (totalSecs <= 0) { 
+            clearInterval(countdownInterval); 
+            // Automatically clear database when time is up
+            db.ref('seats/' + seatNum).remove();
+            return; 
+        }
+        totalSecs--;
+        let m = Math.floor(totalSecs / 60);
+        let s = totalSecs % 60;
+        clock.innerText = `00:${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+    }, 1000);
+}
+
+// THE "FINISH SESSION" FUNCTION
+function finishSession() {
+    // 1. Ask for confirmation
+    if (confirm("End session early? This seat will become available for others.")) {
+        
+        // 2. Clear the timer on the screen
+        if(countdownInterval) clearInterval(countdownInterval);
+        
+        // 3. WIPE DATA FROM FIREBASE
+        db.ref('seats/' + seatNum).remove().then(() => {
+            console.log("Seat wiped from cloud.");
+            // 4. Send user back home
+            window.location.href = 'index.html';
+        }).catch(err => {
+            console.error("Firebase error:", err);
+            window.location.href = 'index.html';
+        });
+    }
 }
 
 function nextScreen(id) {
@@ -216,24 +191,6 @@ function nextScreen(id) {
 function setMins(m) { totalSecs = m * 60; document.getElementById('durationDisp').innerText = m; }
 function addMins(m) { totalSecs += (m * 60); document.getElementById('durationDisp').innerText = totalSecs/60; }
 function goHome() { window.location.href = 'index.html'; }
-
-function finishSession() {
-    // 1. Confirm with user
-    if (confirm("Are you sure you want to end your session early? This will make the seat available for others.")) {
-        
-        // 2. Remove data from Firebase immediately
-        db.ref('seats/' + seatNum).remove().then(() => {
-            console.log("Seat #" + seatNum + " is now free.");
-            
-            // 3. Stop the local timer
-            clearInterval(countdownInterval);
-            
-            // 4. Redirect home
-            window.location.href = 'index.html';
-        }).catch(error => {
-            console.error("Error clearing seat:", error);
-            window.location.href = 'index.html';
-        });
-    }
-}
 </script>
+</body>
+</html>
