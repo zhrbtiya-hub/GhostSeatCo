@@ -138,12 +138,21 @@ ul li::before { content: "• "; color: #000; }
 
     .app-img {
         width: 180px;
-    }
+        margin-bottom:40px; /* adjust this*/
+    } 
 
     .pill-btn-filled {
-        width: 100%; /* Make button full width for easy tapping */
-        font-size: 16px;
-        padding: 15px;
+    background: var(--ghost-blue);
+    color: #fff;
+    padding: 15px 40px;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 18px;
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    margin-top: 20px;
     }
 
     /* 7. Center Footer text */
