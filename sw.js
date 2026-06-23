@@ -1,29 +1,22 @@
-// This is the Service Worker "Background" script
-self.addEventListener('install', (event) => {
-    self.skipWaiting();
-});
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', () => self.clients.claim());
 
-self.addEventListener('push', function(event) {
-    const data = event.data.json();
-    self.registration.showNotification(data.title, {
-        body: data.body,
-        icon: 'logo.png'
-    });
-});
+let notificationTimeout;
 
-// Logic to handle messages from the main website
 self.addEventListener('message', (event) => {
     if (event.data.type === 'SCHEDULE_NOTIFICATION') {
-        const delay = event.data.delay;
-        const seat = event.data.seat;
+        // Clear any old pending notification
+        if (notificationTimeout) clearTimeout(notificationTimeout);
 
-        // This creates a background timer
-        setTimeout(() => {
+        notificationTimeout = setTimeout(() => {
             self.registration.showNotification("Ghost Seat Co.", {
-                body: "Time's up for Seat #" + seat + "! Please clear the seat.",
-                vibrate: [200, 100, 200],
-                tag: 'time-up'
+                body: "Time's up for Seat #" + event.data.seat + "!",
+                vibrate: [200, 100, 200]
             });
-        }, delay);
+        }, event.data.delay);
+    } 
+    
+    if (event.data.type === 'CANCEL_NOTIFICATION') {
+        if (notificationTimeout) clearTimeout(notificationTimeout);
     }
 });
