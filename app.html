@@ -39,29 +39,19 @@
         .screen-header { padding: 15px 0; font-weight: 600; font-size: 16px; color: #000; text-transform: uppercase; letter-spacing: 1px; }
         h2 { font-weight: 800; font-size: 24px; margin: 20px 0; }
         
-        /* SCENARIO 2: OCCUPIED/REPORT STYLES */
-        .smiley-box {
-            width: 160px; height: 160px; background: var(--light-blue);
-            border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; font-size: 80px; margin: 40px 0;
-        }
-        .report-option {
-            width: 100%; padding: 15px; border: 1px solid #ddd;
-            border-radius: 12px; margin-bottom: 10px; text-align: left;
-            font-weight: 600; cursor: pointer; transition: 0.2s;
-        }
-        .report-option:hover { background: #f0f0f0; border-color: var(--figma-red); }
-
-        /* REUSABLE COMPONENTS */
+        /* Graphics */
+        .smiley-box { width: 160px; height: 160px; background: var(--light-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 80px; margin: 40px 0; }
+        .report-option { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 10px; text-align: left; font-weight: 600; cursor: pointer; }
         .btn-group { display: flex; gap: 15px; width: 100%; margin-top: auto; padding-bottom: 30px; }
         .btn-sq { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; color: white; font-size: 16px; }
         .btn-long { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--figma-blue); color: white; font-weight: bold; font-size: 16px; margin-top: auto; margin-bottom: 30px; cursor: pointer; }
         
-        /* TIME PICKER STYLES */
         .time-display { background: #f8f9fa; width: 100%; padding: 20px; border-radius: 15px; border: 2px dashed var(--figma-blue); margin-bottom: 15px; font-size: 20px; font-weight: 900; color: var(--figma-blue); }
         .chip-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 15px; }
         .chip { padding: 8px 12px; background: #eee; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; }
         .btn-add { width: 100%; padding: 10px; background: white; border: 2px solid var(--figma-blue); color: var(--figma-blue); border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 20px; }
+        
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -76,19 +66,19 @@
             <div style="width: 80px; height: 80px; border: 5px solid #eee; border-top: 5px solid var(--figma-blue); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
         </div>
         <h2 style="margin-top: 40px;">Ghost Sensor v1.0</h2>
-        <p style="color: #666;">Scanning Seat #L2-04...</p>
+        <p style="color: #666;">Analyzing Seat #L2-04...</p>
     </div>
 
-    <!-- SCREEN 1: SCAN SCREEN -->
+    <!-- SCREEN 1: STATUS SCREEN (UPDATED) -->
     <div id="screen1" class="screen">
-        <div class="screen-header">SCAN SCREEN</div>
-        <h2 id="resTitle">Live seat Map</h2>
-        <div id="resIcon" style="font-size: 100px; margin: 30px 0;">💺</div>
-        <p id="resText" style="font-weight: 500;">Is this seat available?</p>
+        <div class="screen-header">STATUS SCREEN</div>
+        <h2 id="statusTitle">Checking...</h2>
+        <div id="statusIcon" style="font-size: 100px; margin: 30px 0;">💺</div>
+        <p id="statusMsg" style="font-weight: 500; font-size: 18px; color: #444;"></p>
         <div class="btn-group" id="actionButtons"></div>
     </div>
 
-    <!-- SCREEN 2: BOOKING FORM (The "Yes" path) -->
+    <!-- SCREEN 2: BOOKING FORM -->
     <div id="screen2" class="screen">
         <div class="screen-header">BOOKING FORM</div>
         <h2>Reserve Seat</h2>
@@ -99,66 +89,54 @@
             <label style="font-weight:bold;">How long?</label>
             <div class="time-display" id="durDisp">15 minutes</div>
             <div class="chip-group">
-                <div class="chip" onclick="setDur(15)">15m</div>
-                <div class="chip" onclick="setDur(30)">30m</div>
-                <div class="chip" onclick="setDur(45)">45m</div>
-                <div class="chip" onclick="setDur(60)">1h</div>
+                <div class="chip" onclick="setDur(15)">15m</div><div class="chip" onclick="setDur(30)">30m</div><div class="chip" onclick="setDur(45)">45m</div><div class="chip" onclick="setDur(60)">1h</div>
             </div>
             <button class="btn-add" onclick="addDur(15)">+ Add 15 Minutes</button>
         </div>
         <button class="btn-long" onclick="nextScreen('screen3')">Reserve</button>
     </div>
 
-    <!-- SCREEN 3: SUCCESS SCREEN -->
+    <!-- SCREEN 3: SUCCESS -->
     <div id="screen3" class="screen">
         <div class="screen-header">SUCCESS SCREEN</div>
         <div style="font-size: 80px; color: var(--figma-green); margin: 40px 0;">✔️</div>
         <h2>Seat Reserved!</h2>
-        <p>Seat booked<br>until 3:00 PM</p>
-        <button class="btn-long" onclick="goHome()">Start Timer</button>
+        <p>Your 15-minute countdown starts now.</p>
+        <button class="btn-long" onclick="goHome()">Back to Home</button>
     </div>
 
-    <!-- NEW SCREEN: REPORT REASON (The "No" path part 1) -->
+    <!-- REPORT SCREEN -->
     <div id="screen-report" class="screen">
-        <div class="screen-header">REPORT ISSUE</div>
-        <h2>Why are you reporting?</h2>
-        <div class="report-option" onclick="nextScreen('screen4')">Empty but belongings left</div>
-        <div class="report-option" onclick="nextScreen('screen4')">Occupied but no user found</div>
-        <div class="report-option" onclick="nextScreen('screen4')">Seat is messy/damaged</div>
-        <div class="report-option" onclick="nextScreen('screen4')">Other reason</div>
+        <div class="screen-header">REPORT GHOST SEAT</div>
+        <h2>Identify the issue:</h2>
+        <div class="report-option" onclick="nextScreen('screen4')">Belongings left but seat empty</div>
+        <div class="report-option" onclick="nextScreen('screen4')">Sensor says occupied, but it's empty</div>
+        <div class="report-option" onclick="nextScreen('screen4')">User has been away for too long</div>
         <button class="btn-cancel" style="margin-top:20px; border:none; background:none; color:red; cursor:pointer;" onclick="goHome()">Cancel</button>
     </div>
 
-    <!-- SCREEN 4: OCCUPIED SCREEN (The "No" path final - Image 4) -->
+    <!-- SCREEN 4: THANKS -->
     <div id="screen4" class="screen">
-        <div class="screen-header">OCCUPIED SCREEN</div>
+        <div class="screen-header">REPORT SENT</div>
         <div class="smiley-box">😊</div>
         <h2 style="font-size: 28px;">Thanks for letting<br>us know!</h2>
         <p style="font-size: 18px; margin-top: 10px;">Have a great day! 🙂</p>
         <button class="btn-long" onclick="goHome()">Done</button>
     </div>
 
-    <!-- SCREEN 5: ADMIN DASHBOARD (Image 5) -->
+    <!-- SCREEN 5: ADMIN -->
     <div id="screen5" class="screen">
         <div class="screen-header">ADMIN DASHBOARD</div>
         <div style="width:100%; text-align:left; margin-top:20px;">
             <p style="font-weight:bold; margin-bottom:10px;">Dashboard</p>
             <div style="display:flex; gap:10px;">
-                <div style="flex:1; background:#fef0f0; padding:15px; border-radius:12px;">
-                    <p style="font-size:12px;">Occupied Seats</p>
-                    <h3 style="color:var(--figma-red);">19</h3>
-                </div>
-                <div style="flex:1; background:#f0fef4; padding:15px; border-radius:12px;">
-                    <p style="font-size:12px;">Free Seats</p>
-                    <h3 style="color:var(--figma-green);">7</h3>
-                </div>
+                <div style="flex:1; background:#fef0f0; padding:15px; border-radius:12px;"><p style="font-size:12px;">Occupied</p><h3 style="color:var(--figma-red);">19</h3></div>
+                <div style="flex:1; background:#f0fef4; padding:15px; border-radius:12px;"><p style="font-size:12px;">Free</p><h3 style="color:var(--figma-green);">7</h3></div>
             </div>
             <button class="btn-long" style="background:#555;" onclick="nextScreen('screen0')">Restart Demo</button>
         </div>
     </div>
 </div>
-
-<style> @keyframes spin { 100% { transform: rotate(360deg); } } </style>
 
 <script>
     let minutes = 15;
@@ -172,29 +150,27 @@
         const btnGroup = document.getElementById('actionButtons');
         
         if (isSeatEmpty) {
-            // SCENARIO 1: Seat is Empty
-            document.getElementById('resTitle').innerText = "Live seat Map";
-            document.getElementById('resIcon').innerText = "💺"; // Blue chair icon
-            document.getElementById('resText').innerText = "Is this seat available?";
+            // PROACTIVE AVAILABLE MESSAGE
+            document.getElementById('statusTitle').innerText = "Seat Available!";
+            document.getElementById('statusIcon').innerText = "✅";
+            document.getElementById('statusMsg').innerText = "Wanna book?";
             btnGroup.innerHTML = `
                 <button class="btn-sq" style="background: var(--figma-green);" onclick="nextScreen('screen2')">YES</button>
                 <button class="btn-sq" style="background: var(--figma-red);" onclick="goHome()">NO</button>
             `;
         } else {
-            // SCENARIO 2: Seat is Occupied (The "Second One")
-            document.getElementById('resTitle').innerText = "Live seat Map";
-            document.getElementById('resIcon').innerText = "💺"; 
-            document.getElementById('resText').innerText = "Is this seat available?";
-            // In Scenario 2, if the student clicks NO, it means they want to report it.
+            // PROACTIVE OCCUPIED MESSAGE
+            document.getElementById('statusTitle').innerText = "Seat Occupied!";
+            document.getElementById('statusIcon').innerText = "❌";
+            document.getElementById('statusMsg').innerText = "Wait, is someone actually there? If not, report a Ghost Seat.";
             btnGroup.innerHTML = `
-                <button class="btn-sq" style="background: var(--figma-green);" onclick="goHome()">YES</button>
-                <button class="btn-sq" style="background: var(--figma-red);" onclick="nextScreen('screen-report')">NO</button>
+                <button class="btn-sq" style="background: var(--figma-red);" onclick="nextScreen('screen-report')">REPORT GHOST</button>
+                <button class="btn-sq" style="background: #555;" onclick="goHome()">FIND NEW SEAT</button>
             `;
         }
         nextScreen('screen1');
     }
 
-    // Time logic
     function setDur(m) { minutes = m; updateDisplay(); }
     function addDur(m) { minutes += m; updateDisplay(); }
     function updateDisplay() {
@@ -202,12 +178,10 @@
         let m = minutes%60;
         document.getElementById('durDisp').innerText = (h>0 ? h+"h ":"") + m + " minutes";
     }
-
     function nextScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     }
-
     function goHome() { window.location.href = 'index.html'; }
 </script>
 
