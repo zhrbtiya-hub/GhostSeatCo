@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Seat | Live App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        :root { --blue: #9AD8F5; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #000; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        
+        .phone-frame { background: #fff; width: 100%; max-width: 400px; height: 100vh; position: relative; display: flex; flex-direction: column; padding: 40px 20px; }
+        .screen { display: flex; flex-direction: column; align-items: center; text-align: center; height: 100%; }
+        h2 { font-weight: 900; margin-bottom: 20px; font-size: 24px; }
+        
+        /* Seat Grid */
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+        .seat { width: 60px; height: 60px; background: #eee; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
+        .seat.occupied { background: #FFDADA; color: #FF4D4D; cursor: not-allowed; }
+        .seat.selected { background: var(--blue); color: white; transform: scale(1.1); }
+        
+        /* Buttons */
+        .btn { background: var(--blue); color: white; border: none; padding: 15px; border-radius: 15px; font-weight: bold; width: 100%; cursor: pointer; margin-top: auto; }
+        .btn:disabled { background: #eee; color: #aaa; }
+        
+        /* Timer */
+        .timer-circle { width: 180px; height: 180px; border: 8px solid var(--blue); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 40px 0; }
+        #countdown { font-size: 40px; font-weight: 900; }
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <!-- SCREEN 1: SCANNER -->
+        <div id="screen-scan" class="screen">
+            <h2>Scan Seat QR</h2>
+            <div id="reader" style="width: 100%;"></div>
+            <button class="btn" onclick="showMap()">Demo: Skip to Map</button>
+        </div>
+
+        <!-- SCREEN 2: MAP -->
+        <div id="screen-map" class="screen" style="display:none;">
+            <h2>Select Seat</h2>
+            <div class="grid" id="seatGrid"></div>
+            <button id="bookBtn" class="btn" disabled onclick="showTimer()">Confirm Seat</button>
+        </div>
+
+        <!-- SCREEN 3: TIMER -->
+        <div id="screen-timer" class="screen" style="display:none;">
+            <div style="font-size: 50px;">✅</div>
+            <h2>Seat Booked!</h2>
+            <div class="timer-circle">
+                <h1 id="countdown">15:00</h1>
+                <p>Remaining</p>
+            </div>
+            <button class="btn" onclick="location.href='index.html'">Back to Home</button>
+        </div>
+    </div>
+
+    <script>
+        let html5QrCode;
+        
+        // Start Camera automatically
+        window.onload = () => {
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => {
+                showMap();
+            });
+        };
+
+        function showMap() {
+            if(html5QrCode) html5QrCode.stop();
+            document.getElementById('screen-scan').style.display = 'none';
+            document.getElementById('screen-map').style.display = 'flex';
+            generateSeats();
+        }
+
+        function generateSeats() {
+            const grid = document.getElementById('seatGrid');
+            for (let i = 1; i <= 12; i++) {
+                const seat = document.createElement('div');
+                seat.className = 'seat';
+                if (Math.random() > 0.7) {
+                    seat.classList.add('occupied');
+                    seat.innerText = "X";
+                } else {
+                    seat.innerText = i;
+                    seat.onclick = () => {
+                        document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
+                        seat.classList.add('selected');
+                        document.getElementById('bookBtn').disabled = false;
+                    };
+                }
+                grid.appendChild(seat);
+            }
+        }
+
+        function showTimer() {
+            document.getElementById('screen-map').style.display = 'none';
+            document.getElementById('screen-timer').style.display = 'flex';
+            startTimer();
+        }
+
+        function startTimer() {
+            let time = 900;
+            setInterval(() => {
+                let mins = Math.floor(time / 60);
+                let secs = time % 60;
+                document.getElementById('countdown').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                if (time > 0) time--;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
