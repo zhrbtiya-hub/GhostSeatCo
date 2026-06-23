@@ -104,7 +104,7 @@
 </div>
 
 <script>
-// !!! PASTE YOUR FIREBASE CONFIG HERE !!!
+// 1. FIREBASE CONFIG (Make sure your keys are here!)
 const firebaseConfig = {
   apiKey: "AIzaSyBo-83st_6iUSVt72cPyrG29ChnfNZr53k",
   authDomain: "ghostseat.firebaseapp.com",
@@ -123,58 +123,55 @@ const urlParams = new URLSearchParams(window.location.search);
 const seatNum = urlParams.get('seat') || "01"; 
 let totalSecs = 900; 
 
+// 2. SERVICE WORKER & PERMISSION SETUP
 window.onload = function() {
     document.getElementById('currentSeatID').innerText = "#" + seatNum;
     document.getElementById('successSeatID').innerText = "#" + seatNum;
-    
-    // Secret Notch Click
-    let clicks = 0;
-    document.getElementById('adminNotch').onclick = () => {
-        clicks++;
-        if(clicks === 3) { nextScreen('screen5'); clicks = 0; }
-        setTimeout(() => clicks = 0, 2000);
-    };
+
+    // Register Service Worker for background work
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(() => {
+            console.log("Service Worker Active");
+        });
+    }
+
+    // Ask for Notification Permission
+    if ("Notification" in window) {
+        Notification.requestPermission();
+    }
 
     setTimeout(checkSeat, 1000); 
 };
 
-function checkSeat() {
-    db.ref('seats/' + seatNum).once('value').then(snap => {
-        const data = snap.val();
-        const now = Date.now();
-        const btnArea = document.getElementById('actionButtons');
-
-        if (data && data.expiry > now) {
-            document.getElementById('statusTitle').innerText = "Seat Taken!";
-            document.getElementById('statusIcon').innerText = "❌";
-            document.getElementById('statusMsg').innerText = "Reserved by " + data.userName;
-            btnArea.innerHTML = `<button onclick="nextScreen('screen4')" style="background:var(--figma-red); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold;">REPORT</button>
-                                 <button onclick="goHome()" style="background:#555; flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold;">FIND NEW</button>`;
-        } else {
-            document.getElementById('statusTitle').innerText = "Seat Available!";
-            document.getElementById('statusIcon').innerText = "✅";
-            document.getElementById('statusMsg').innerText = "Book Seat #" + seatNum + "?";
-            btnArea.innerHTML = `<button onclick="nextScreen('screen2')" style="background:var(--figma-green); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold;">YES</button>
-                                 <button onclick="goHome()" style="background:var(--figma-red); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold;">NO</button>`;
-        }
-        nextScreen('screen1');
-    });
-}
-
+// 3. BOOKING LOGIC
 function confirmBooking() {
     const name = document.getElementById('nameInput').value || "Guest";
     const expiry = Date.now() + (totalSecs * 1000);
     
     db.ref('seats/' + seatNum).set({ userName: name, expiry: expiry }).then(() => {
+        
+        // TELL THE BACKGROUND WORKER TO NOTIFY US IN THE FUTURE
+        if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+                type: 'SCHEDULE_NOTIFICATION',
+                delay: totalSecs * 1000,
+                seat: seatNum
+            });
+        }
+
         nextScreen('screen3');
         startTimer();
     });
 }
 
+// 4. THE REST OF YOUR FUNCTIONS (Stay the same)
 function startTimer() {
     const clock = document.getElementById('timerClock');
     const interval = setInterval(() => {
-        if (totalSecs <= 0) { clearInterval(interval); return; }
+        if (totalSecs <= 0) { 
+            clearInterval(interval); 
+            return; 
+        }
         totalSecs--;
         let m = Math.floor(totalSecs / 60);
         let s = totalSecs % 60;
@@ -182,36 +179,33 @@ function startTimer() {
     }, 1000);
 }
 
-function loadDashboard() {
-    db.ref('seats').on('value', snap => {
+function checkSeat() {
+    db.ref('seats/' + seatNum).once('value').then(snap => {
         const data = snap.val();
         const now = Date.now();
-        let occ = 0;
-        let html = "";
-        if (data) {
-            Object.keys(data).forEach(id => {
-                if (data[id].expiry > now) {
-                    occ++;
-                    let t = new Date(data[id].expiry).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                    html += `<div class="user-row"><div style="flex:1;"><b>${data[id].userName}</b> (Seat ${id})</div><div style="font-size:12px;">Until ${t}</div></div>`;
-                }
-            });
+        const btnArea = document.getElementById('actionButtons');
+        if (data && data.expiry > now) {
+            document.getElementById('statusTitle').innerText = "Seat Taken!";
+            document.getElementById('statusIcon').innerText = "❌";
+            document.getElementById('statusMsg').innerText = "Reserved by " + data.userName;
+            btnArea.innerHTML = `<button onclick="nextScreen('screen4')" style="background:var(--figma-red); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold; cursor:pointer;">REPORT</button>
+                                 <button onclick="goHome()" style="background:#555; flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold; cursor:pointer;">FIND NEW</button>`;
+        } else {
+            document.getElementById('statusTitle').innerText = "Seat Available!";
+            document.getElementById('statusIcon').innerText = "✅";
+            document.getElementById('statusMsg').innerText = "Book Seat #" + seatNum + "?";
+            btnArea.innerHTML = `<button onclick="nextScreen('screen2')" style="background:var(--figma-green); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold; cursor:pointer;">YES</button>
+                                 <button onclick="goHome()" style="background:var(--figma-red); flex:1; padding:15px; border-radius:10px; border:none; color:white; font-weight:bold; cursor:pointer;">NO</button>`;
         }
-        document.getElementById('dashOcc').innerText = occ;
-        document.getElementById('dashFree').innerText = 30 - occ;
-        document.getElementById('adminUserList').innerHTML = html || "<p style='padding:20px; text-align:center;'>No active users</p>";
+        nextScreen('screen1');
     });
 }
 
 function nextScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    if(id === 'screen5') loadDashboard();
 }
-
 function setMins(m) { totalSecs = m * 60; document.getElementById('durationDisp').innerText = m; }
 function addMins(m) { totalSecs += (m * 60); document.getElementById('durationDisp').innerText = totalSecs/60; }
 function goHome() { window.location.href = 'index.html'; }
 </script>
-</body>
-</html>
