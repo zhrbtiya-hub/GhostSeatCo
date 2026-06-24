@@ -74,6 +74,7 @@
 </div>
 
 <script>
+// --- 1. CONFIG ---
 const firebaseConfig = {
   apiKey: "AIzaSyBo-83st_6iUSVt72cPyrG29ChnfNZr53k",
   authDomain: "ghostseat.firebaseapp.com",
@@ -90,61 +91,72 @@ const db = firebase.database();
 
 const params = new URLSearchParams(window.location.search);
 const seatID = params.get('seat') || "01";
-let secs = 900; // Total seconds for the countdown
+let secs = 900; 
 let timer = null;
 let targetExpiry = 0;
 
 window.onload = () => {
     document.getElementById('disp0').innerText = "#" + seatID;
+    document.getElementById('successSeatDisplay').innerText = "#" + seatID;
     setTimeout(check, 800);
 };
 
+// --- 2. CHECK STATUS (USER B VIEW) ---
 function check() {
     db.ref('seats/' + seatID).once('value').then(s => {
         const d = s.val();
         const now = Date.now();
         const area = document.getElementById('actionButtons');
+        const msg = document.getElementById('statusMsg');
         
         if (d && d.expiry > now) {
             targetExpiry = d.expiry;
             
-            // Format the duration string (e.g., "15 minutes" or "1 hour")
-            let durText = d.chosenDuration >= 60 ? Math.floor(d.chosenDuration/60) + " hour(s)" : d.chosenDuration + " minutes";
+            // Format the time the seat will be free (e.g., 2:30 PM)
+            let timeFinished = new Date(d.expiry).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            // Format the end time (e.g., 2:30 PM)
-            let endTime = new Date(d.expiry).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            // Calculate how many minutes they originally picked
+            let dur = d.dur ? d.dur : Math.round((d.expiry - d.startTime) / 60000);
 
             document.getElementById('statusTitle').innerText = "Seat Taken!";
             document.getElementById('statusIcon').innerText = "❌";
             
-            // NEW: Added Duration and End Time to the message
-            document.getElementById('statusMsg').innerHTML = 
-                `Reserved by <b>${d.user}</b><br>` + 
-                `Duration: ${durText}<br>` +
-                `Available at: <b>${endTime}</b>`;
+            // This is the part that shows the detailed info
+            msg.innerHTML = `
+                <div style="background:#f8f9fa; padding:15px; border-radius:10px; text-align:left; border-left:4px solid #ff4757;">
+                    <b>Reserved by:</b> ${d.user}<br>
+                    <b>Duration:</b> ${dur} minutes<br>
+                    <b>Available at:</b> <span style="color:#ff4757; font-weight:bold;">${timeFinished}</span>
+                </div>
+            `;
             
-            area.innerHTML = `<button onclick="resumeTimer()" style="background:var(--figma-blue); width:100%; border:none; color:white; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer;">VIEW MY TIMER</button>`;
+            area.innerHTML = `<button onclick="resumeTimer()" style="background:var(--figma-blue); width:100%; border:none; color:white; padding:18px; border-radius:12px; font-weight:bold; cursor:pointer;">VIEW MY TIMER</button>`;
         } else {
             document.getElementById('statusTitle').innerText = "Seat Available!";
             document.getElementById('statusIcon').innerText = "✅";
-            document.getElementById('statusMsg').innerText = "Wanna book Seat #" + seatID + "?";
-            area.innerHTML = `<button onclick="show('screen2')" style="background:var(--figma-green); flex:1; border:none; color:white; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer;">YES</button>
-                             <button onclick="location.href='index.html'" style="background:var(--figma-red); flex:1; border:none; color:white; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer; margin-left:10px;">NO</button>`;
+            msg.innerText = "This seat is currently empty. Would you like to reserve it?";
+            
+            area.innerHTML = `
+                <button onclick="show('screen2')" style="background:var(--figma-green); flex:1; border:none; color:white; padding:18px; border-radius:12px; font-weight:bold; cursor:pointer; margin-right:10px;">YES</button>
+                <button onclick="location.href='index.html'" style="background:var(--figma-red); flex:1; border:none; color:white; padding:18px; border-radius:12px; font-weight:bold; cursor:pointer;">NO</button>`;
         }
         show('screen1');
     });
 }
 
+// --- 3. BOOKING (USER A ACTION) ---
 function bookNow() {
     const n = document.getElementById('nameInput').value || "Student";
-    const chosenDurationMinutes = secs / 60; // Calculate duration in minutes
-    targetExpiry = Date.now() + (secs * 1000); 
+    const startTime = Date.now();
+    targetExpiry = startTime + (secs * 1000);
+    const chosenMinutes = secs / 60;
     
-    // Save User, Expiry, AND the Chosen Duration to the Cloud
+    // Save everything needed for User B to see
     db.ref('seats/' + seatID).set({ 
         user: n, 
         expiry: targetExpiry,
-        chosenDuration: chosenDurationMinutes 
+        startTime: startTime,
+        dur: chosenMinutes
     }).then(() => {
         show('screen3');
         start();
@@ -166,16 +178,15 @@ function start() {
             return; 
         }
 
-        let h = Math.floor(secs / 3600);
-        let m = Math.floor((secs % 3600) / 60);
-        let s = secs % 60;
-        document.getElementById('timerClock').innerText = 
-            (h < 10 ? "0"+h : h) + ":" + (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
+        let h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
+        document.getElementById('timerClock').innerText = `${h < 10 ? '0'+h : h}:${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
     }, 1000);
 }
 
+function resumeTimer() { show('screen3'); start(); }
+
 function forceFinish() {
-    if(confirm("End session and release seat?")) {
+    if(confirm("End session early?")) {
         clearInterval(timer);
         db.ref('seats/' + seatID).set(null).then(() => {
             alert("Seat Released!");
@@ -188,14 +199,6 @@ function show(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 }
-
-function setT(m) { 
-    secs = m * 60; 
-    document.getElementById('durDisp').innerText = m; 
-}
-
-function addT(m) { 
-    secs += (m * 60); 
-    document.getElementById('durDisp').innerText = secs / 60; 
-}
+function setT(m) { secs = m * 60; document.getElementById('durDisp').innerText = m; }
+function addT(m) { secs += (m * 60); document.getElementById('durDisp').innerText = secs / 60; }
 </script>
