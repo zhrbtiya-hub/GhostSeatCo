@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ghost Seat App</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    
-    <!-- Firebase Libraries -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
@@ -14,17 +12,17 @@
         :root { --figma-green: #2ecc71; --figma-red: #ff4757; --figma-blue: #1e67fb; --ghost-blue: #9AD8F5; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #111; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #000; }
-        .phone-container { width: 375px; height: 700px; background: white; border-radius: 40px; position: relative; overflow: hidden; border: 8px solid #333; display: flex; flex-direction: column; }
+        .phone-container { width: 375px; height: 720px; background: white; border-radius: 40px; position: relative; overflow: hidden; border: 8px solid #333; display: flex; flex-direction: column; }
         .notch { width: 150px; height: 25px; background: #333; margin: 0 auto; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; z-index: 9999; }
         .screen { flex: 1; display: none; flex-direction: column; align-items: center; padding: 20px; text-align: center; width: 100%; }
         .active { display: flex !important; }
-        .radar { width: 80px; height: 80px; border: 4px solid var(--ghost-blue); border-radius: 50%; margin: 40px auto; animation: pulse 0.6s infinite; }
+        .radar { width: 80px; height: 80px; border: 4px solid var(--ghost-blue); border-radius: 50%; margin: 30px auto; animation: pulse 0.6s infinite; }
         @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.1); opacity: 0; } }
-        h2 { font-weight: 800; font-size: 24px; margin: 20px 0; }
+        h2 { font-weight: 800; font-size: 24px; margin: 15px 0; }
         .btn-sq { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; color: white; }
         .btn-long { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--figma-blue); color: white; font-weight: bold; font-size: 16px; margin-top: auto; margin-bottom: 10px; cursor: pointer; }
-        input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 10px; }
-        .timer-box { margin: 20px 0; background: #f8f9fa; padding: 25px; border-radius: 20px; width: 100%; border: 2px solid var(--figma-green); }
+        input, select, textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 10px; font-size: 15px; font-family: inherit; }
+        .timer-box { margin: 15px 0; background: #f8f9fa; padding: 20px; border-radius: 20px; width: 100%; border: 2px solid var(--figma-green); }
         .time-chip { padding: 8px 12px; background: #eee; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; margin: 5px; }
     </style>
 </head>
@@ -33,22 +31,22 @@
 <div class="phone-container">
     <div class="notch"></div>
 
-    <!-- SENSING -->
+    <!-- SCREEN 0: SENSING -->
     <div id="screen0" class="screen active">
         <div class="radar"></div>
         <h2>Analyzing Seat...</h2>
         <p>Checking <span id="disp0">#...</span></p>
     </div>
 
-    <!-- STATUS -->
+    <!-- SCREEN 1: STATUS -->
     <div id="screen1" class="screen">
         <h2 id="statusTitle">...</h2>
-        <div style="font-size: 60px; margin: 20px 0;" id="statusIcon">💺</div>
-        <p id="statusMsg" style="margin-bottom: 30px;"></p>
+        <div style="font-size: 60px; margin: 15px 0;" id="statusIcon">💺</div>
+        <p id="statusMsg" style="margin-bottom: 20px;"></p>
         <div id="actionButtons" style="display:flex; gap:10px; width:100%;"></div>
     </div>
 
-    <!-- FORM -->
+    <!-- SCREEN 2: BOOKING FORM -->
     <div id="screen2" class="screen">
         <h2>Reserve Seat</h2>
         <input type="text" id="nameInput" placeholder="Enter your name">
@@ -61,20 +59,46 @@
         <button class="btn-long" onclick="bookNow()">Confirm</button>
     </div>
 
-    <!-- SUCCESS -->
+    <!-- SCREEN 3: SUCCESS -->
     <div id="screen3" class="screen">
         <div style="font-size: 50px; color: var(--figma-green);">✔️</div>
+        <h2 id="successSeatIDDisplay">Seat Reserved!</h2>
         <div class="timer-box">
             <h1 id="timerClock" style="font-size: 40px;">00:15:00</h1>
         </div>
         <button class="btn-long" onclick="location.href='index.html'">Minimize</button>
-        <!-- CRITICAL BUTTON -->
         <button class="btn-long" style="background:#444;" onclick="forceFinish()">Finish session</button>
+    </div>
+
+    <!-- NEW SCREEN: REPORT FORM -->
+    <div id="screen-report" class="screen">
+        <div style="font-size:40px; margin-top:10px;">🚩</div>
+        <h2>Report Issue</h2>
+        <div style="text-align: left; width: 100%;">
+            <label><b>Why are you reporting?</b></label>
+            <select id="reportReason">
+                <option>Belongings left but seat empty</option>
+                <option>User away for >15 mins</option>
+                <option>Sensor says occupied but it's empty</option>
+                <option>Seat is messy/damaged</option>
+            </select>
+            <label><b>Details (Optional)</b></label>
+            <textarea id="reportNote" rows="3" placeholder="Any other info..."></textarea>
+        </div>
+        <button class="btn-long" style="background:var(--figma-red);" onclick="submitReport()">Submit Report</button>
+        <button onclick="show('screen1')" style="border:none; background:none; color:#888; cursor:pointer;">Cancel</button>
+    </div>
+
+    <!-- SCREEN 4: REPORT SUCCESS -->
+    <div id="screen4" class="screen">
+        <div style="font-size: 80px; margin: 40px;">😊</div>
+        <h2>Thanks for letting us know!</h2>
+        <p>A supervisor will check Seat <span id="reportSeatNum"></span> shortly.</p>
+        <button class="btn-long" onclick="location.href='index.html'">Done</button>
     </div>
 </div>
 
 <script>
-// --- 1. CONFIG ---
 const firebaseConfig = {
   apiKey: "AIzaSyBo-83st_6iUSVt72cPyrG29ChnfNZr53k",
   authDomain: "ghostseat.firebaseapp.com",
@@ -91,73 +115,42 @@ const db = firebase.database();
 
 const params = new URLSearchParams(window.location.search);
 const seatID = params.get('seat') || "01";
-let secs = 900; 
-let timer = null;
-let targetExpiry = 0;
+let secs = 900, timer = null, targetExpiry = 0;
 
 window.onload = () => {
     document.getElementById('disp0').innerText = "#" + seatID;
-    document.getElementById('successSeatDisplay').innerText = "#" + seatID;
+    document.getElementById('reportSeatNum').innerText = "#" + seatID;
     setTimeout(check, 800);
 };
 
-// --- 2. CHECK STATUS (USER B VIEW) ---
 function check() {
     db.ref('seats/' + seatID).once('value').then(s => {
-        const d = s.val();
-        const now = Date.now();
-        const area = document.getElementById('actionButtons');
-        const msg = document.getElementById('statusMsg');
-        
+        const d = s.val(), now = Date.now(), area = document.getElementById('actionButtons'), msg = document.getElementById('statusMsg');
         if (d && d.expiry > now) {
             targetExpiry = d.expiry;
-            
-            // Format the time the seat will be free (e.g., 2:30 PM)
-            let timeFinished = new Date(d.expiry).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            // Calculate how many minutes they originally picked
-            let dur = d.dur ? d.dur : Math.round((d.expiry - d.startTime) / 60000);
-
+            let timeFin = new Date(d.expiry).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             document.getElementById('statusTitle').innerText = "Seat Taken!";
             document.getElementById('statusIcon').innerText = "❌";
-            
-            // This is the part that shows the detailed info
-            msg.innerHTML = `
-                <div style="background:#f8f9fa; padding:15px; border-radius:10px; text-align:left; border-left:4px solid #ff4757;">
-                    <b>Reserved by:</b> ${d.user}<br>
-                    <b>Duration:</b> ${dur} minutes<br>
-                    <b>Available at:</b> <span style="color:#ff4757; font-weight:bold;">${timeFinished}</span>
-                </div>
-            `;
-            
-            area.innerHTML = `<button onclick="resumeTimer()" style="background:var(--figma-blue); width:100%; border:none; color:white; padding:18px; border-radius:12px; font-weight:bold; cursor:pointer;">VIEW MY TIMER</button>`;
+            msg.innerHTML = `<div style="background:#f8f9fa; padding:12px; border-radius:10px; text-align:left; border-left:4px solid #ff4757;">
+                    <b>Reserved by:</b> ${d.user}<br><b>Duration:</b> ${d.dur} mins<br><b>Available at:</b> ${timeFin}</div>`;
+            area.innerHTML = `<button onclick="show('screen-report')" style="background:var(--figma-red); flex:1; border:none; color:white; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer;">REPORT GHOST</button>
+                             <button onclick="location.href='index.html'" style="background:#555; flex:1; border:none; color:white; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer;">FIND NEW</button>`;
         } else {
             document.getElementById('statusTitle').innerText = "Seat Available!";
             document.getElementById('statusIcon').innerText = "✅";
-            msg.innerText = "This seat is currently empty. Would you like to reserve it?";
-            
-            area.innerHTML = `
-                <button onclick="show('screen2')" style="background:var(--figma-green); flex:1; border:none; color:white; padding:18px; border-radius:12px; font-weight:bold; cursor:pointer; margin-right:10px;">YES</button>
-                <button onclick="location.href='index.html'" style="background:var(--figma-red); flex:1; border:none; color:white; padding:18px; border-radius:12px; font-weight:bold; cursor:pointer;">NO</button>`;
+            msg.innerText = "This seat is empty. Want to reserve it?";
+            area.innerHTML = `<button onclick="show('screen2')" style="background:var(--figma-green); flex:1; border:none; color:white; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer;">YES</button>
+                             <button onclick="location.href='index.html'" style="background:#ff4757; flex:1; border:none; color:white; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer; margin-left:10px;">NO</button>`;
         }
         show('screen1');
     });
 }
 
-// --- 3. BOOKING (USER A ACTION) ---
 function bookNow() {
     const n = document.getElementById('nameInput').value || "Student";
-    const startTime = Date.now();
-    targetExpiry = startTime + (secs * 1000);
-    const chosenMinutes = secs / 60;
-    
-    // Save everything needed for User B to see
-    db.ref('seats/' + seatID).set({ 
-        user: n, 
-        expiry: targetExpiry,
-        startTime: startTime,
-        dur: chosenMinutes
-    }).then(() => {
+    targetExpiry = Date.now() + (secs * 1000);
+    db.ref('seats/' + seatID).set({ user: n, expiry: targetExpiry, dur: secs/60 }).then(() => {
+        document.getElementById('successSeatIDDisplay').innerText = "Seat #" + seatID + " Reserved!";
         show('screen3');
         start();
     });
@@ -166,39 +159,26 @@ function bookNow() {
 function start() {
     if(timer) clearInterval(timer);
     timer = setInterval(() => {
-        const now = Date.now();
-        secs = Math.floor((targetExpiry - now) / 1000);
-
-        if (secs <= 0) { 
-            clearInterval(timer); 
-            db.ref('seats/' + seatID).set(null); 
-            document.getElementById('timerClock').innerText = "00:00:00";
-            alert("Time is up!");
-            location.href='index.html';
-            return; 
-        }
-
+        secs = Math.floor((targetExpiry - Date.now()) / 1000);
+        if (secs <= 0) { clearInterval(timer); db.ref('seats/' + seatID).set(null); location.href='index.html'; return; }
         let h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
         document.getElementById('timerClock').innerText = `${h < 10 ? '0'+h : h}:${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
     }, 1000);
 }
 
-function resumeTimer() { show('screen3'); start(); }
-
-function forceFinish() {
-    if(confirm("End session early?")) {
-        clearInterval(timer);
-        db.ref('seats/' + seatID).set(null).then(() => {
-            alert("Seat Released!");
-            window.location.replace('index.html');
-        });
-    }
+function submitReport() {
+    const reason = document.getElementById('reportReason').value;
+    const note = document.getElementById('reportNote').value;
+    // Save report to Firebase so admin can see
+    db.ref('reports').push({ seat: seatID, reason: reason, note: note, time: new Date().toLocaleString() }).then(() => {
+        show('screen4');
+    });
 }
 
-function show(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-}
+function forceFinish() { if(confirm("End session?")) { db.ref('seats/' + seatID).set(null).then(() => window.location.replace('index.html')); } }
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function setT(m) { secs = m * 60; document.getElementById('durDisp').innerText = m; }
 function addT(m) { secs += (m * 60); document.getElementById('durDisp').innerText = secs / 60; }
 </script>
+</body>
+</html>
