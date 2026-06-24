@@ -6,7 +6,7 @@
     <title>Ghost Seat | Smart App</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs (Compat version is best for single HTML files) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
@@ -20,6 +20,8 @@
         .active { display: flex !important; }
         .radar { width: 100px; height: 100px; border: 4px solid var(--ghost-blue); border-radius: 50%; margin: 40px auto; animation: pulse 0.6s infinite; }
         @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.1); opacity: 0; } }
+        .screen-header { padding: 15px 0; font-weight: 600; font-size: 16px; text-transform: uppercase; }
+        h2 { font-weight: 800; font-size: 24px; margin: 20px 0; }
         .btn-sq { flex: 1; padding: 18px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; color: white; }
         .btn-long { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--figma-blue); color: white; font-weight: bold; cursor: pointer; margin-top: auto; margin-bottom: 10px; }
         input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 10px; font-size: 16px; }
@@ -32,14 +34,12 @@
 <div class="phone-container">
     <div class="notch" id="secretAdminNotch"></div>
 
-    <!-- SCREEN 0: SENSING -->
     <div id="screen0" class="screen active">
         <h2 style="margin-top: 40px;">Ghost Sensor v1.0</h2>
         <div class="radar"></div>
         <p>Analyzing Seat <span id="currentSeatDisplay">#...</span></p>
     </div>
 
-    <!-- SCREEN 1: STATUS -->
     <div id="screen1" class="screen">
         <h2 id="statusTitle">...</h2>
         <div id="statusIcon" style="font-size: 80px; margin: 20px 0;">💺</div>
@@ -47,7 +47,6 @@
         <div id="actionButtons" style="display:flex; gap:15px; width:100%;"></div>
     </div>
 
-    <!-- SCREEN 2: BOOKING FORM -->
     <div id="screen2" class="screen">
         <h2>Reserve Seat</h2>
         <div style="text-align: left; width: 100%;">
@@ -64,7 +63,6 @@
         <button class="btn-long" onclick="confirmReservation()">Confirm</button>
     </div>
 
-    <!-- SCREEN 3: SUCCESS & TIMER -->
     <div id="screen3" class="screen">
         <div style="font-size: 60px; color: var(--figma-green); margin-top:20px;">✔️</div>
         <h2>Seat <span id="successSeatDisplay"></span> Reserved!</h2>
@@ -77,15 +75,7 @@
 </div>
 
 <script>
-// !!! PASTE YOUR FIREBASE CONFIG HERE !!!
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// --- 1. FIREBASE CONFIG ---
 const firebaseConfig = {
   apiKey: "AIzaSyBo-83st_6iUSVt72cPyrG29ChnfNZr53k",
   authDomain: "ghostseat.firebaseapp.com",
@@ -97,11 +87,11 @@ const firebaseConfig = {
   measurementId: "G-LVTK159XYG"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// Initialize Firebase correctly for standard script tags
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-// Global State
+// --- 2. GLOBALS ---
 const urlParams = new URLSearchParams(window.location.search);
 const seatNum = urlParams.get('seat') || "01"; 
 let totalSeconds = 900; 
@@ -110,10 +100,12 @@ let timerInterval = null;
 window.onload = function() {
     document.getElementById('currentSeatDisplay').innerText = "#" + seatNum;
     document.getElementById('successSeatDisplay').innerText = "#" + seatNum;
+    
+    // Start Analysis
     setTimeout(checkSeatStatus, 1000);
 };
 
-// Logic: Check Cloud
+// --- 3. CHECK SEAT ---
 function checkSeatStatus() {
     db.ref('seats/' + seatNum).once('value').then(snapshot => {
         const data = snapshot.val();
@@ -122,23 +114,22 @@ function checkSeatStatus() {
 
         if (data && data.expiry > now) {
             document.getElementById('statusTitle').innerText = "Seat Taken!";
-            document.getElementById('statusIcon').innerText = "❌";
-            document.getElementById('statusMsg').innerText = "Reserved by " + data.userName;
-            btnArea.innerHTML = `<button onclick="goHome()" class="btn-sq" style="background:#555;">FIND NEW</button>`;
+            document.getElementById('statusMsg').innerText = "Reserved by " + (data.userName || "a student");
+            btnArea.innerHTML = `<button onclick="goHome()" style="background:#555; color:white; width:100%; padding:15px; border-radius:10px; border:none; font-weight:bold; cursor:pointer;">FIND NEW SEAT</button>`;
         } else {
             document.getElementById('statusTitle').innerText = "Seat Available!";
-            document.getElementById('statusIcon').innerText = "✅";
             document.getElementById('statusMsg').innerText = "Wanna book Seat #" + seatNum + "?";
-            btnArea.innerHTML = `<button onclick="nextScreen('screen2')" class="btn-sq" style="background:var(--figma-green);">YES</button>
-                                 <button onclick="goHome()" class="btn-sq" style="background:var(--figma-red);">NO</button>`;
+            btnArea.innerHTML = `
+                <button onclick="nextScreen('screen2')" style="background:#2ecc71; color:white; flex:1; padding:15px; border-radius:10px; border:none; font-weight:bold; cursor:pointer; margin-right:10px;">YES</button>
+                <button onclick="goHome()" style="background:#ff4757; color:white; flex:1; padding:15px; border-radius:10px; border:none; font-weight:bold; cursor:pointer;">NO</button>`;
         }
         nextScreen('screen1');
     });
 }
 
-// Logic: Save to Cloud
+// --- 4. BOOKING ---
 function confirmReservation() {
-    const name = document.getElementById('nameInput').value || "Guest";
+    const name = document.getElementById('nameInput').value || "Student";
     const expiryTime = Date.now() + (totalSeconds * 1000);
 
     db.ref('seats/' + seatNum).set({
@@ -147,17 +138,17 @@ function confirmReservation() {
     }).then(() => {
         nextScreen('screen3');
         startClock();
-    }).catch(err => alert("Error: " + err.message));
+    }).catch(err => alert("Firebase Error: " + err.message));
 }
 
-// Logic: Timer
+// --- 5. TIMER ---
 function startClock() {
     if(timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         if (totalSeconds <= 0) {
             clearInterval(timerInterval);
-            db.ref('seats/' + seatNum).remove();
-            alert("Time is up!");
+            db.ref('seats/' + seatNum).remove(); // Clear seat from cloud automatically
+            alert("Time is up! Seat is now free.");
             goHome();
             return;
         }
@@ -168,23 +159,24 @@ function startClock() {
     }, 1000);
 }
 
-// Logic: THE FINISH BUTTON
+// --- 6. THE FINISH BUTTON ---
 function finishSession() {
-    if (confirm("Release this seat and end session?")) {
-        // 1. Stop the clock
-        clearInterval(timerInterval);
-
-        // 2. Tell Firebase to delete this seat
+    if (confirm("End your session now? This will make the seat available for others.")) {
+        // Stop timer
+        if(timerInterval) clearInterval(timerInterval);
+        
+        // Remove from cloud, THEN redirect
         db.ref('seats/' + seatNum).remove().then(() => {
-            alert("Seat is now free!");
+            alert("Success: Seat is now free.");
             window.location.href = 'index.html';
         }).catch(err => {
-            alert("Failed to release seat: " + err.message);
+            console.error(err);
+            window.location.href = 'index.html';
         });
     }
 }
 
-// Helpers
+// --- HELPERS ---
 function nextScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
